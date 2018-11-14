@@ -31,3 +31,7 @@ Branches (создание, удаление, слияние)
     $ git log --oneline --decorate
     
     $ git log --oneline --decorate --graph --all
+
+В очередь на изучение
+---------------------
+* Stashing and Cleaning (in chapter "Git Tools")
