@@ -23,7 +23,20 @@ Branches (создание, удаление, слияние)
 
 ### Простое переключение веток и слияние
 
-    $ git checkout -b iss53 - создать новую ветку iss53 и переключиться на нее
+    $ git checkout -b iss53 -- создать новую ветку iss53 и переключиться на нее
+    $                       -- do some work on iss53
+    $ git commit -a -m 'started work on iss53'
+    $ git checkout master
+    $ git checkout -b hotfix
+    $                       -- do some work on hotfix
+    $ git commit -a -m 'fixed something hot'
+    $ git checkout master
+    $ git merge hotfix
+    $ git branch -d hotfix  -- удалить временную ветку
+    $                       -- deploy hotfix
+    $ git checkout iss53    -- вернуться в первоначальную ветку
+    $                       -- продолжить работу в ней
+    $ git commit -a -m 'finished work on iss53'
     
 Получение информации
 --------------------
