@@ -1,3 +1,5 @@
+[Index](README.md)
+
 Git.
 ====
 Основные команды
@@ -163,6 +165,13 @@ After fast-forward merge:
     
 'git commit --amend' изменяет SHA-1 коммита, то есть не следует править последний коммит, если он уже куда-то отправлен.
 
+Отмена последнего коммита
+-------------------------
+    $ git reset --soft HEAD^
+или
+
+    $ git reset --soft HEAD~1
+
 Объединение коммитов
 --------------------
     $ git rebase -i HEAD~3  -- начать интерактивное редактирование
@@ -186,3 +195,5 @@ After fast-forward merge:
 ---------------------
 * Stashing and Cleaning (in chapter "Git Tools")
 * Rewriting History (in chapter "Git Tools")
+
+[Top](#git-)

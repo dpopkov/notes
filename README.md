@@ -1,6 +1,7 @@
 # notes
 
 * [algorithms](algorithms.md) - алгоритмы
+* [git-basics](git-basics.md) - основы Git
 * [idea-basics](idea-basics.md) - Idea
 * [markdown-simple](markdown-simple.md) - основной синтаксис Markdown 
 * [questions-core](questions-core.md) - вопросы по Java Core
