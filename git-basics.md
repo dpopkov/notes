@@ -2,12 +2,47 @@
 
 Git.
 ====
+
+Файлы могут быть в трех состояниях
+----------------------------------
+* committed - данные сохранены в локальной базе
+* modified - файл изменен, но не сохранен в локальной базе
+* staged - измененный файл в его текущем состоянии помечен для сохранения в следующем коммите
+
+Setup Identity
+--------------
+    $ git config --global user.name "Your Name"
+    $ git config --global user.email yourmail@example.com
+    $ git config --list
+    $ git config specific.key.value.to.view
+    
+### Проверка источника (файла конфигурации) для конкретного параметра настройки
+
+    $ git config --show-origin key.value.to.check
+
 Основные команды
+================
+
+### Просмотр статуса
+    $ git status
+    $ git status -s
+    
+### Просмотр изменений
+    $ git diff              --> изменения не помещенные в stage (между working dir и stage area)
+    $ git diff --staged     --> изменения помещенные в stage (между stage area и repository)
+    $ git diff --cached     --> то же что и --staged
+    
+### Файловые операции
+    $ git rm <file>             --> удаляет файл из stage и working dir (нужно закоммитить это)
+    $ git rm --cached <file>    --> удаляет файл только из staged, оставляя в working dir (нужно коммитить)
+    $ git rm log/\*.log         --> удаляет файлы с расширением .log из директории log (backslash \ важен)
+    $ git rm \*~                --> удаляет все файлы оканчивающиеся на ~
+    $ git mv <from> <to>        --> переименовать (переместить)
 
 Commit
 ------
 
-    $ git commit -a -m message - коммитит измененные файлы
+    $ git commit -a -m message - коммитит измененные файлы если они уже отслеживаемые
 
 Branches (создание, удаление, слияние)
 --------------------------------------
