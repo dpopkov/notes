@@ -145,3 +145,7 @@ I strongly recommend against using any `<blink>` tags.
 I wish SmartyPants used named entities like `&mdash;`
 instead of decimal-encoded entites like `&#8212;`.
 
+
+## Ссылки на Руководства
+
+[Mastering Markdown at GitHub](https://guides.github.com/features/mastering-markdown/)

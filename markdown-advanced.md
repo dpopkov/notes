@@ -22,3 +22,8 @@
 эта строка | без внешних | дефисов
 
 
+
+## Ссылки на Руководства
+
+[Mastering Markdown at GitHub](https://guides.github.com/features/mastering-markdown/)
+
