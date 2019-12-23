@@ -55,4 +55,20 @@ sudo service mysql stop
 sudo service mysql restart
 ```
 
+### List and Create Databases
+```
+mysql> SHOW DATABASES;
 
+mysql> SHOW DATABASES LIKE 'pattern';
+```
+
+```
+CREATE DATABASE [IF NOT EXISTS] database-name;
+```
+
+In MySQL, the schema is the synonym for the database. Creating a new schema also means creating a new database.
+
+#### Access database
+```
+USE database-name;
+```
