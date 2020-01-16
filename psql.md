@@ -8,6 +8,41 @@ psql -f [filename]              execute commands from file, then exit
 
 psql -f demo.sql -U postgres    execute sql from demo.sql as user postgres
 
+### Use in command line
+
+```
+psql --port=5432 --host=localhost --dbname=northwind --username=postgres
+```
+Or
+```
+psql -p 5432 -h localhost -d northwind -U postgres
+```
+Without __localhost__ pear authentication fails.
+
+### How to eliminate typing connection parameters
+
+1. Use Environment variables
+
+```
+export PGHOST=localhost
+export PGPORT=5432
+export PGUSER=postgres
+export PGDATABASE=northwind
+export PGPASSWORD=xxxxxxxx
+```
+You can put these environment variables in your `.bash_profile`.
+
+2. Create `.pgpass` file in your home directory
+
+Format:
+```
+hostname:port:database:username:password
+```
+Note: this option did __not__ work.
+
+3. Use `.pg_service.conf` file
+
+
 In psql
 -------
 
@@ -18,9 +53,11 @@ Command	| Description
 \h [name] | help on syntax
 \i file   | execute commands from file
 \l        | list databases
+\dn       | list schemas
 \d        | list tables, views, and sequences
 \d name   | descibe table, view, sequence, or index
 \dt       | list tables
+\dt schema-name.    | list tables in the schema-name
 \dv       | list views
 \di       | список индексов
 \c [dbname]             | connect
