@@ -20,16 +20,21 @@ Setup Identity
 ### Проверка источника (файла конфигурации) для конкретного параметра настройки
 
     $ git config --show-origin key.value.to.check
+    
+### Как сделать чтобы директория была отслеживаема Гитом
+
+    mkdir dirname
+    touch dirname/.gitkeep  --> директория содержащая файл теперь может быть добавлена в репозиторий
 
 Основные команды
 ================
 
 ### Просмотр статуса
     $ git status
-    $ git status -s
+    $ git status -s         --> статус в краткой однострочной форме
     
 ### Просмотр изменений
-    $ git diff              --> изменения не помещенные в stage (между working dir и stage area)
+    $ git diff              --> изменения, еще не помещенные в stage (между working dir и stage area)
     $ git diff --staged     --> изменения помещенные в stage (между stage area и repository)
     $ git diff --cached     --> то же что и --staged
     
@@ -47,12 +52,15 @@ Setup Identity
 ### Просмотр истории коммитов
     $ git log
     $ git log -2            --> показать последние 2 коммита
+    $ git log --oneline     --> вывести информацию по каждому коммиту в одной строке
+    $ git log --all         --> вывести все коммиты, в т.ч. после текущей ветки
     $ git log --patch       --> показать изменения внесенные каждыйм коммитом
     $ git log -p            --> тоже что и --patch
     $ git log --state       --> показать статистику (кол-во измененных файлов, удаленных/добавленных строк)
     $ git log --pretty=oneline                          --> вывод в одну строку (sha-1, комментарий)
     $ git log --pretty=format:"%h - %an, %ar : %s"      --> hash, author name, author relative date, subject
     $ git log --pretty=format:"%h %s" --graph           --> hash, subject, ascii-graph
+    $ git log --oneline --all --decorate --graph        --> показать граф с отображением всех веток
     
 #### Ограничение вывода истории коммитов
     $ git log -<n>              --> вывод последних n коммитов
@@ -74,6 +82,7 @@ Setup Identity
     $ git fetch <remote>    --> получает из remote repo новые данные (в т.ч branches)
     $ git fetch origin      --> получает из origin новые данные, но не делает merge
     $ git pull              --> fetch и merge текущую branch, если она настроена на отслеживание remote branch
+    $ git fetch --prune     --> fetch и если в remote были удалены ветки, то они будут удалены и локально
     
 ### Отправление данных на Remote
     $ git push <remote> <branch>
@@ -154,11 +163,15 @@ Branches (создание, удаление, слияние)
 
     $ git branch                -- показать список веток
     $ git branch -v             -- показать список веток с последними коммитами
+    $ git branch -a             -- показать список всех веток
     $ git branch --merged       -- ветки уже слитые в текущую ветку (могут быть удалены, кроме текущей)
     $ git branch --no-merged    -- ветки еще не слитые в текущую ветку
     $ git branch -r             -- показать ветки на remote repository
     
-    $ git checkout testing
+    $ git brahch -d branch-to-remove    -- удалить ветку
+    
+    $ git checkout testing              -- перейти на ветку testing
+    $ git checkout -b my-branch         -- перейти на ветку my-branch и перед этим создать ее
     $ git branch --no-merged master     -- ветки не слитые в ветку master
     
 ### Процесс работы с ветками
@@ -315,6 +328,10 @@ After fast-forward merge:
     $ git checkout -- <file>    --> результат: рабочая копия заменяется копией из последнего коммита
     
 Для сохранения изменений, но не в текущей последовательности коммитов (ветке), следует использовать Stashing и Branching.
+
+### Возврат все отслеживаемых файлов в состояние последнего коммита
+
+    $ git reset --hard          --> результат: все файлы помещенные в репозиторий будут возвращены в состояние последнего коммита, изменения в рабочей директории будут потеряны
 
 ### Отмена последнего коммита
 
