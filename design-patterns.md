@@ -1,8 +1,17 @@
 Design Patterns
 ===============
 
+* [The Observer Pattern](#observer")
 * [The Factory Method Pattern](#factory-method)
 * [The Abstract Factory Pattern](#abstract-factory)
+
+
+The Observer Pattern<a name="observer"></a>
+--------------------
+
+The Observer Pattern defines a one-to-meny dependency between objects so that when one object changes state, all of its dependents are notified and updated automatically.
+
+![Observer](images/design-patterns/Observer.png)
 
 
 The Factory Method Pattern<a name="factory-method"></a>
