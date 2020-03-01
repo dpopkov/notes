@@ -4,6 +4,8 @@ Design Patterns
 * [The Observer Pattern](#observer")
 * [The Factory Method Pattern](#factory-method)
 * [The Abstract Factory Pattern](#abstract-factory)
+* [The Command Pattern](#command)
+* [The Adapter Pattern](#adapter)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -39,9 +41,17 @@ The Command Pattern us used when you need to decouple an object making request f
 
 ![Command](images/design-patterns/Command.png)
 
-### Command Pattern (Remote Control API Design Example)
+### The Command Pattern (Remote Control API Design Example)
 
 The Command Pattern is employed to logically decouple the RemoteControl class from the Vendor Classes, so that the RemoteControl doesn't require changes as new vendor classes are produced.
 
 ![Command example](images/design-patterns/Command-example.png)
+
+
+The Adapter Pattern<a name="adapter"></a>
+-------------------
+
+The Adapter Pattern converts the interface of a class into another interface the clients expect. Adapter lets classes work together hat couldn't otherwise because of incompatible interfaces.
+
+![Adapter](images/design-patterns/Adapter.png)
 
