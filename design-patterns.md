@@ -6,6 +6,7 @@ Design Patterns
 * [The Abstract Factory Pattern](#abstract-factory)
 * [The Command Pattern](#command)
 * [The Adapter Pattern](#adapter)
+* [The Facade Pattern](#fasade)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -54,4 +55,27 @@ The Adapter Pattern<a name="adapter"></a>
 The Adapter Pattern converts the interface of a class into another interface the clients expect. Adapter lets classes work together hat couldn't otherwise because of incompatible interfaces.
 
 ![Adapter](images/design-patterns/Adapter.png)
+
+
+The Facade Pattern<a name="fasade"></a>
+------------------
+
+The Facade Pattern provides a unified interface to a set of interfaces in a subsystem. Facade defines a higher level interface that makes the subsystem easier to use.
+
+![Fasade](images/design-patterns/Fasade.png)
+
+
+The Principle of Least Knowledge
+--------------------------------
+
+__Talk only to your immediate frieds.__
+
+Guidelines:  
+take any object; now from any method in that object, we should only invoke methods that belong to:  
+* The object itself
+* Objects passed in as a parameter to the method
+* Any object the method creates or instantiates
+* Any components of the object.
+
+It means __not to call methods on objects that were returned from calling other method.__
 
