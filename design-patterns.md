@@ -7,6 +7,7 @@ Design Patterns
 * [The Command Pattern](#command)
 * [The Adapter Pattern](#adapter)
 * [The Facade Pattern](#fasade)
+* [The Template Method Pattern](#template-method)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -78,4 +79,42 @@ take any object; now from any method in that object, we should only invoke metho
 * Any components of the object.
 
 It means __not to call methods on objects that were returned from calling other method.__
+
+
+The Template Method Pattern<a name="template-method"></a>
+---------------------------
+
+The Template Method Pattern defines the skeleton of an algorithm in a method,
+deferring some steps to subclasses. Template Method lets subclasses redefine
+certain steps of an algorithm without changing the algorithm's structure.
+
+![Template Method](images/design-patterns/Template-Method.png)
+
+```Java
+abstract class AbstractClass {
+    /*
+     * The template method is declared final to prevent subclasses
+     * from reworking the sequence of steps in the algorithm.
+     */
+    public final void templateMetod() {
+        primitiveOperation1();
+        primitiveOperation2();
+        concreteOperation();
+        hook();
+    }
+
+    public abstract void primitiveOperation1();
+
+    public abstract void primitiveOperation2();
+
+    public final void concreteOperation() {
+        // implementation here
+    }
+    
+    /*
+     * Hook methods do nothing by default, but subclasses are free to override these.
+     */
+    protected void hook() {}
+}
+```
 
