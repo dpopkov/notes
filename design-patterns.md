@@ -8,6 +8,7 @@ Design Patterns
 * [The Adapter Pattern](#adapter)
 * [The Facade Pattern](#fasade)
 * [The Template Method Pattern](#template-method)
+* [The Iterator Pattern](#iterator)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -117,4 +118,14 @@ abstract class AbstractClass {
     protected void hook() {}
 }
 ```
+
+
+The Iterator Pattern<a name="iterator"></a>
+--------------------
+
+The Iterator Pattern provides a way to access the elements of an aggregate object
+sequentially without exposing its underlying representation.
+
+![Iterator](images/design-patterns/Iterator.png)
+
 
