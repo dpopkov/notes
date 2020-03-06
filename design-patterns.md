@@ -9,6 +9,7 @@ Design Patterns
 * [The Facade Pattern](#fasade)
 * [The Template Method Pattern](#template-method)
 * [The Iterator Pattern](#iterator)
+* [The Composite Pattern](#composite)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -128,4 +129,13 @@ sequentially without exposing its underlying representation.
 
 ![Iterator](images/design-patterns/Iterator.png)
 
+
+The Composite Pattern<a name="composite"></a>
+---------------------
+
+The Composite Pattern allows you to compose objects into tree structures to represent
+part-whole hierarchies. Composite lets clients treat individual objects and compositions
+of ofjects __uniformly__.
+
+![Composite](images/design-patterns/Composite.png)
 
