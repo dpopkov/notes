@@ -10,6 +10,7 @@ Design Patterns
 * [The Template Method Pattern](#template-method)
 * [The Iterator Pattern](#iterator)
 * [The Composite Pattern](#composite)
+* [The State Pattern](#state)
 
 
 The Observer Pattern<a name="observer"></a>
@@ -138,4 +139,13 @@ part-whole hierarchies. Composite lets clients treat individual objects and comp
 of ofjects __uniformly__.
 
 ![Composite](images/design-patterns/Composite.png)
+
+
+The State Pattern<a name="state"></a>
+-----------------
+
+The State Pattern allows an object to alter its behavior when its internal state changes. 
+The object will appear to change its class.
+
+![State](images/design-patterns/State.png)
 
