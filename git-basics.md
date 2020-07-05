@@ -16,6 +16,18 @@ Setup Identity
     $ git config --global user.email yourmail@example.com
     $ git config --list
     $ git config specific.key.value.to.view
+
+    $ git config --global core.autocrlf true    --> if on Windows
+    $ git config --global core.autocrlf input    --> if on Linux
+    
+    $ git config --global core.editor "code --wait"     --> set VSCode as default editor
+
+    $ git config --global -e     --> open default editor for global settings
+
+### Set visual tool for Diff
+    $ git config --global diff.tool vscode
+    $ git config --global difftool.vscode.cmd 'code --wait --diff $LOCAL $REMOTE'
+    $ git difftool      --> invoke the chosen visual tool
     
 ### Проверка источника (файла конфигурации) для конкретного параметра настройки
 
@@ -45,14 +57,23 @@ Setup Identity
     $ git rm \*~                --> удаляет все файлы оканчивающиеся на ~
     $ git mv <from> <to>        --> переименовать (переместить)
 
+### Staging Area
+    $ git ls-files              --> List files in staging area (index)
+    $ git rm --cached <file>    --> Remove file from staging area (need to commit), so it is not tracked any more
+
 ### Commit
 
     $ git commit -a -m message - коммитит измененные файлы если они уже отслеживаемые
+
+
+### История коммитов
     
-### Просмотр истории коммитов
+#### Просмотр истории коммитов
     $ git log
     $ git log -2            --> показать последние 2 коммита
     $ git log --oneline     --> вывести информацию по каждому коммиту в одной строке
+    $ git log --oneline --stat      --> показать все файлы изменные в коммитах
+    $ git log --oneline --patch      --> показать все изменения в файлах
     $ git log --all         --> вывести все коммиты, в т.ч. после текущей ветки
     $ git log --patch       --> показать изменения внесенные каждыйм коммитом
     $ git log -p            --> тоже что и --patch
@@ -65,9 +86,36 @@ Setup Identity
 #### Ограничение вывода истории коммитов
     $ git log -<n>              --> вывод последних n коммитов
     $ git log --since=2.weeks   --> вывод за последние 2 недели
-    $ git log --author          --> только коммиты определенного автора
-    $ git log --grep            --> поиск по ключевым словам в описании
+    $ git log --before="2020-09-01"
+    $ git log --after="2020-09-01"
+    $ git log --after="yesterday"
+    $ git log --after="one week ago"
+    $ git log --author="Author name"          --> только коммиты определенного автора
+    $ git log --grep="search pattern"         --> поиск по ключевым словам в описании
     $ git log -S function_name  --> показать коммиты изменившие кол-во вхождений указанной подстроки (добавление/удаление)
+    $ git log -S"changed-substring" --patch     --> коммиты изменившие указанную подстроку
+    $ git log --oneline hash_from..hash_to      --> диапазон коммитов from/to указанные хэши граничных коммитов
+    $ git log --oneline toc.txt                 --> коммиты затронувшие файл toc.txt
+    $ git log --oneline -- toc.txt                 --> тоже что предыдущий, но если git жалуется на имя файла
+    $ git log --oneline --patch -- toc.txt         --> тоже что предыдущий, но с внесенными изменениями
+
+#### Форматирование вывода истории
+    $ git log --pretty=format:"%an %H"     --> author name, full hash
+    $ git log --pretty=format:"%an %h"     --> author name, short hash
+    $ git log --pretty=format:"%an commited %h on %cd"     --> author name, short hash, commit date
+
+#### Просмотр коммита
+    $ git show 921a2ff      --> shows the given commit
+    $ git show HEAD         --> shows the last commit
+    $ git show HEAD~2       --> two steps before the last commit
+    $ git show HEAD:file.js --> shows the exact version of file.js stored in the last commit
+    $ git show HEAD --name-only     --> shows only names of the chanded files
+    $ git ls-tree HEAD~1    --> shows all files and directories stored in the commit
+
+Aliases
+=======
+
+    $ git config --global alias.lg "log --pretty=format:'%an commited %h'"
     
 Работа с 'Remote' Repositories
 ==============================
@@ -340,6 +388,9 @@ After fast-forward merge:
 
     $ git reset --soft HEAD~1
     
+### Восстановление файла из определенного коммита
+
+    $ git checkout ab0e87d -- <path-to-file-to-restore>
 
 Объединение коммитов
 --------------------
