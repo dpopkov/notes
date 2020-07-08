@@ -49,6 +49,9 @@ Setup Identity
     $ git diff              --> изменения, еще не помещенные в stage (между working dir и stage area)
     $ git diff --staged     --> изменения помещенные в stage (между stage area и repository)
     $ git diff --cached     --> то же что и --staged
+    $ git diff HEAD~2 HEAD  --> изменения между двумя коммитами
+    $ git diff HEAD~2 HEAD filename  --> изменения между двумя коммитами для конкретного файла
+    $ git diff HEAD~2 HEAD --name-only   --> изменения между двумя коммитами (вывести только имена файлов)
     
 ### Файловые операции
     $ git rm <file>             --> удаляет файл из stage и working dir (нужно закоммитить это)
@@ -65,11 +68,19 @@ Setup Identity
 
     $ git commit -a -m message - коммитит измененные файлы если они уже отслеживаемые
 
+### Tagging
+    $ git tag v1.0 5e7a828      --> прицепить тэг к указанному коммиту
+    $ git checkout v1.0         --> checout коммит по указанному тэгу
+    $ git tag                   --> показать все созданные тэги
+    $ git tag -a v1.1 -m "My version 1.1"   --> создать аннотированный тэг с описанием и прицепить к тек.ком.
+    $ git tag -n                --> показать тэги с сообщениями коммитов и их собственными описаниями
+
 
 ### История коммитов
     
 #### Просмотр истории коммитов
     $ git log
+    $ git log file.txt      --> показать коммиты изменившие файл file1.txt
     $ git log -2            --> показать последние 2 коммита
     $ git log --oneline     --> вывести информацию по каждому коммиту в одной строке
     $ git log --oneline --stat      --> показать все файлы изменные в коммитах
@@ -112,10 +123,36 @@ Setup Identity
     $ git show HEAD --name-only     --> shows only names of the chanded files
     $ git ls-tree HEAD~1    --> shows all files and directories stored in the commit
 
+#### История файла
+    $ git log file1.txt               --> коммиты затронувшие файл file1.txt
+    $ git log --oneline file1.txt     --> коммиты затронувшие файл file1.txt
+    $ git log --oneline --stat file1.txt     --> коммиты затронувшие файл file1.txt с кол-вом изменений
+    $ git log --oneline --path file1.txt     --> коммиты затронувшие файл file1.txt с текстом изменений
+
+
+Checkout Коммита
+================
+
+    $ git checkout ab123ef4
+
+
+Find Bugs using Bisect
+======================
+    
+    $ git bisect start
+    $ git bisect bad        --> tell that the current commit is 'bad'
+    $ git bisect good commit-hash        --> tell that the specified commit is 'good'
+    $ git log --oneline --all           --> view all commits with referenes 'good'/'bad'
+    $ git bisect good       --> tell that the current 'middle' commit is 'good'
+    ...continue bisecting and applying tests, dividing the history in half...
+    $ git bisect bad        --> when only one commit left - so you found the first 'bad' commit
+    $ git bisect reset      --> when you found the bug - attach HEAD back to master branch
+
 Aliases
 =======
 
     $ git config --global alias.lg "log --pretty=format:'%an commited %h'"
+    $ git config --global alias.lg "log --oneline --all --graph"
     
 Работа с 'Remote' Repositories
 ==============================
@@ -146,6 +183,8 @@ Branches (создание, удаление, слияние)
 
     $ git branch testing - создает новый указатель на текущий коммит  
     (HEAD продолжает указывать на последнюю текущую ветку - чаще всего это master)
+
+    $ git switch -C testing     --> создать ветку и переключиться в нее
     
 ### Переключение веток
 
@@ -186,7 +225,21 @@ Branches (создание, удаление, слияние)
     $ git merge iss53           --> слить ветку iss53 в ветку master
     $ git branch -d iss53       --> удалить ветку iss53
     
-    
+### Простое слияние без fast-forward
+    $ git merge --no-ff branch_name     --> создает дополнительный коммит для слияния
+
+### Squash-Merging
+
+Создается отдельный коммит содержащий все изменения из слияемой ветки и этот коммит применяется поверх master (целевой ветки). Применяется для коротких веток с "не опрятной" историей из нескольких коммитов, которые можно потом удалить.
+
+    $ git switch master                         --> перейти в целевую ветку
+    $ git merge --squash branch_to_merge        --> подготавливает merge (изменения пока только в staged area)
+    $ git commit -m "Descriptive message"       --> commit подготовленные squashed изменения в master
+
+Использованная ветка не появится в списке `git branch --merged` так как технически она не сливалась.
+
+    $ git branch -D squashed_branch             --> удалить использованную ветку насильно (так как она не merged)Ж
+
 ### Конфликты слияния
 
 Если в ветках подвергаемых слиянию изменяется один и тот же участок в одном и том же файле, то слияние не может быть произведено автоматически и возникает необходимость в ручном разрешении конфликта.
@@ -281,6 +334,76 @@ Remote-tracking branches are references to the state of remote branches. You can
     
 ### Удаление remote branch
     $ git push origin --delete serverfix    -- delete serverfix branch from the server
+
+
+Fixing Bugs Workflow
+--------------------
+
+1 - Create branch:  
+
+    $ git branch bugfix
+    $ git branch
+    $ git status
+
+2 - Switch branch (in new git):
+
+    git switch bugfix
+
+3 - Rename branch (optional):
+
+    git branch -m bugfix bugfix/signup-form
+
+4 - Make changes in the code
+
+5 - View status:
+
+    git status
+
+6 - Add and commit:
+
+    git add changed-filename
+    git commit -m "Commit description"
+
+7 - View updated log:
+
+    git log --oneline
+
+8 - Switch to master branch:
+
+    git switch master
+    git log --oneline --all
+
+9 - Compare branches:
+
+    git log master..bugfix/signup-form      --> list commits that are not in master
+    git diff master..bugfix/signup-form     --> view changes between branches
+    git diff bugfix/signup-form             --> shorter command when on master
+    git diff --name-only bugfix/signup-form --> show only names
+    git diff --name-status bugfix/signup-form --> show only names with status
+
+10 - Change code in master branch and Stash not committed changes (optional):
+
+    git stash push -m "Description"         --> stash tracked files
+    git stash push --all -m "Description"   --> stash all including new non-tracked files
+    git stash list                          --> list stashes
+    ...now state of master branch is clean and you can switch between branches...
+
+11 - View and restore saved stashes (optional):
+
+    git stash show stash@{1}        -- show stash 1
+    git stash show 1                -- same but shorter
+    git stash apply 1               -- apply stash
+    git stash drop 1                -- delete stash
+    git stash clear                 -- delete all stashes
+
+12 - Merge branches
+
+13 - View and delete merged branches
+
+    git branch --merged         --> view list of merged branches that are safe to delete
+    git branch -d bugfix/login-form     --> delete branch
+    git branch --no-merged      --> view list of non merged branches (not safe to delete)
+
     
 Rebasing
 ========
@@ -351,6 +474,20 @@ After fast-forward merge:
 **Do not rebase commits that exist outside your repository.**
 
 
+Cherry-Picking
+==============
+
+Если хотем взять коммит из другой ветки и добавить эти изменения в текущую ветку:
+
+    $ git switch target_branch                      --> переключиться в целевую ветку
+    $ git cherry-pick hash_of_the_picked_commit     --> выбрать и применить выбранный коммит указав его хэш
+
+#### Взять из другого коммита только отдельный файл
+
+    $ git switch target_branch                      --> переключиться в целевую ветку
+    $ git restore --source=branch_to_take_file_from -- file_name_to_take
+    ...then add and commit the changed file...
+
 Отмена/изменение действий
 =========================
 
@@ -381,14 +518,23 @@ After fast-forward merge:
 
     $ git reset --hard          --> результат: все файлы помещенные в репозиторий будут возвращены в состояние последнего коммита, изменения в рабочей директории будут потеряны
 
-### Отмена последнего коммита
+### Отмена последнего коммита (только если история еще не была разделена с другими участниками проекта)
 
-    $ git reset --soft HEAD^
-или
-
+    $ git reset --soft HEAD^        --> файлы в working dir и index остаются нетронутыми
     $ git reset --soft HEAD~1
+
+    или 
+
+    $ git reset --hard HEAD^        --> файлы в working dir и index возвращаются в предыдущее состояние
+    $ git reset --hard HEAD~1
+
+### Отмена последнего коммита (только если история уже  была разделена с другими участниками проекта)
+
+    $ git revert HEAD               --> сделать revert целевого коммита (HEAD, то есть последнего)
+    $ git revert -m 1 HEAD          --> в случае если это revert слияния, то нужно указать parent
     
-### Восстановление файла из определенного коммита
+Восстановление файла из определенного коммита
+---------------------------------------------
 
     $ git checkout ab0e87d -- <path-to-file-to-restore>
 
@@ -419,6 +565,18 @@ squash - слить изменения данного коммита в пред
     $ git log --oneline --decorate
     
     $ git log --oneline --decorate --graph --all
+
+
+Получение информации о контрибьютерах
+-------------------------------------
+    git shortlog          --> показать контрибюторов и их summary messages из коммитов
+
+
+Нахождение автора строк используя blame
+---------------------------------------
+    git blame filename      --> показать все строки файла с указанием коммита и автора
+    git blame -e filename      --> показать все строки файла с указанием коммита, автора и email
+    git blame -L 1,3 filename      --> показать диапазон строк файла с указанием коммита и автора
 
 В очередь на изучение
 ---------------------
