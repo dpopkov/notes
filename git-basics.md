@@ -75,6 +75,10 @@ Setup Identity
     $ git tag -a v1.1 -m "My version 1.1"   --> создать аннотированный тэг с описанием и прицепить к тек.ком.
     $ git tag -n                --> показать тэги с сообщениями коммитов и их собственными описаниями
 
+    $ git push origin v1.0       --> push tag to remote
+    $ git push origin --delete v1.0     --> deelte the specified tag from a remote
+    $ git tag -d v1.0            --> delete tag locally
+
 
 ### История коммитов
     
@@ -167,6 +171,7 @@ Aliases
     $ git fetch <remote>    --> получает из remote repo новые данные (в т.ч branches)
     $ git fetch origin      --> получает из origin новые данные, но не делает merge
     $ git pull              --> fetch и merge текущую branch, если она настроена на отслеживание remote branch
+    $ git pull --rebase     --> если есть расхождение веток, то применить local changes поверх remote changes
     $ git fetch --prune     --> fetch и если в remote были удалены ветки, то они будут удалены и локально
     
 ### Отправление данных на Remote
@@ -325,15 +330,26 @@ Remote-tracking branches are references to the state of remote branches. You can
     Если уже есть локальная ветка serverfix:
     $ git branch -u origin/serverfix    -- serverfix set up to track remote from origin
     
-    $ git branch -vv                    -- list local branches with tracking info
+    $ git branch -vv                    -- list local branches with tracking info (разница между local и remote)
     Чтобы увидеть обновленную актуальную информацию с сервера:
     $ git fetch --all; git branch -vv   -- fetch all before viewing info
+
+### Как запушить локальную ветку
+
+    $ git branch -r             --> see remote tracking branches
+    $ git push -u origin name_of_branch_to_push     --> push the specified branch to remote
+    $ git push -d origin name_of_branch_to_delete   --> delete the remote branch
+    $ git branch -r             --> confirm that the remote branch was deleted
+    $ git branch -d name_of_local_branch_to_delete  --> delete the local branch without upstream
     
 ### Pulling
     $ git pull      -- сделает fetch, затем merge для текущей локальной ветки, если она связана с remote branch
     
 ### Удаление remote branch
     $ git push origin --delete serverfix    -- delete serverfix branch from the server
+
+
+## [Collaboration Workflows using Branches](git-workflows.md)
 
 
 Fixing Bugs Workflow
