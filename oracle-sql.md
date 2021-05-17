@@ -139,3 +139,92 @@ select * from employees where bdate >= (
 );
 ```
 
+5 - Retriveal: Functions
+------------------------
+
+### 5.1 - Overview of Functions
+* Group functions
+    * SUM
+    * AVG
+    * COUNT
+* Single-row functions
+    * UPPER
+    * LOWER
+    * TRUNC
+    * TO_CHAR
+
+### 5.2 - Arithmetic functions
+* ROUND(n[,m])
+* TRUNC(n[,m])
+* CEIL(n)
+* FLOOR(n)
+* ABS(n)
+* SIGN(n)
+* SQRT(n)
+* EXP(n)
+* LN(n), LOG(m, n)
+* POWER(n, m)
+* MOD(n, m)
+* SIN(n), COS(n), TAN(n)
+* ASIN(n), ACOS(n), ATAN(n)
+* SINH(n), COSH(n), TANH(n)
+
+### 5.3 - Text Functions
+* LENGTH(t)
+* ASCII(t)
+* CHR(n)
+* UPPER(t), LOWER(t)
+* INITCAP(t)
+* LTRIM(t[,k])
+* RTRIM(t[,k])
+* TRIM([[option][c FROM]] t)
+* LPAD(t,n[,k])
+* RPAD(t,n[,k])  -- Right-pad t with k to length n (the default k is a space)
+* SUBSTR(t,n[,m]) -- Substring of t from position n, m characters long (the default for m is until end)
+* INSTR(t, k) -- Position of the first occurrence of k in t
+* INSTR(t, k, n)
+* TRANSLATE(t,v,w)
+* REPLACE(t,v)
+* REPLACE(t,v,w) -- Replace each occurrence of v in t by w
+* CONCAT(t1,t2)
+
+__Note:__ When counting positions in strings, always start with one, not  with zero.
+
+### 5.4 - Regular Expressions
+* REGEXP_COUNT(source, pattern, ...)
+* REGEXP_INSTR(source, pattern, position, occurrence, ...)
+* REGEXP_SUBSTR(source, patter, position, occurrence, ...)
+* REGEXP_REPLACE(source, patter, replace, pos, occurrence, ...)
+
+### 5.5 Date Functions
+* ADD_MONTHS(d, n)
+* MONTHS_BETWEEN(d, e)
+* LAST_DAY(d)   -- Last day of the month containing date d
+* NEXT_DAY(d, weekday) -- The first weekday (mon, tue, etc.) after d
+* NEW_TIME(d, z1, z2) -- Convert date/time from time zone z1 to z2
+* ROUND(d[, fmt])
+* TRUNC(d[, fmt])
+* EXTRACT(c FROM d) -- Extract date/time component c from expression d
+
+### 5.6 General Functions
+* GREATEST(a, b, ...)
+* LEAST(a, b, ...)
+* NULLIF(a, b)  -- NULL if a = b; otherwise a
+* COALESCE(a, b, ...) -- The first NOT NULL argument (and NULL if all arguments are NULL)
+* NVL(x, y) -- y if x is NULL; otherwise x
+* NVL2(x, y, z) -- y if x is not NULL; otherwise z
+* CASE x when a1 then b1
+when a2 then b2 ... else y
+end
+
+### 5.7 Conversion Functions
+* TO_CHAR(n[,fmt])  -- Convert number n to a string
+* TO_CHAR(d[,fmt])  -- Convert date/time expression d to a string
+* TO_NUMBER(t)      -- Convert string t to a number
+* TO_BINARY_FLOAT(e[,fmt]) -- Convert expression e to a floating-point number
+* TO_BINARY_DOUBLE(e[,fmt]) -- Convert expression e to a double-precision, floating-point number
+* TO_DATE(t[,fmt]) -- Convert string t to a date
+* TO_YMINTERVAL(t) -- Convert string t to a YEAR TO MONTH interval
+* TO_DSINTERVAL(t) -- Convert string t to a DAY TO SECOND interval
+* TO_TIMESTAMP (t[,fmt]) -- Convert string t to a timestamp
+* CAST(e AS t) -- Convert expression e to datatype t
