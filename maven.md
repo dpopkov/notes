@@ -11,6 +11,10 @@ Contents
         * [Skipping tests](#skipping-tests)
         * [Default lifecycle all phases](#default-lifecycle-all-phases)
         * [Default Lifecycle - JAR packaging](#default-lifecycle---jar-packaging)
+* [Common Maven Plugins](#common-maven-plugins)
+    * [Maven Clean Plugin](#maven-clean-plugin)
+    * [Maven Compiler Plugin](#maven-compiler-plugin)
+    * [Other Plugins](#other-plugins)
 
 Maven Build Lifecycles
 ----------------------
@@ -108,3 +112,57 @@ Source: [introduction-to-the-lifecycle](https://maven.apache.org/guides/introduc
 * Phase: deploy - Plugin: maven-deploy-plugin:deploy
 
 [TOC](#contents)
+
+Common Maven Plugins
+--------------------
+* Clean
+* Compiler
+* Resources
+    * Has 3 goals: resources, testResources, copy-resources
+    * Copies project resources to output directory (target dir)
+* Surefire
+    * Has 1 goal: test
+    * Executes unit tests
+    * By default includes: Test\*.java; \*Test.java; \*Tests.java; *TestCase.java 
+* Jar
+    * Has 2 goals: jar, test-jar
+* Deploy
+* Site
+
+[TOC](#contents)
+
+### Maven Clean Plugin
+How to add plugin execution to a specific phase (example):
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>auto-clean</id>
+                    <phase>initialize</phase>
+                    <goals>
+                        <goal>clean</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+[TOC](#contents)
+
+### Maven Compiler Plugin
+* Change bytecode version: `<properties><java.version>1.8</java.version></properties>`
+* Display help information on maven-compiler-plugin: `help -Ddetail=true -Dgoal=<goal-name>` to display parameters.
+
+### Other Plugins
+* Dependency Analyze: `mvn dependency:analyze`  -- analyzes the dependencies of the project
+* Dependency Tree: `mvn dependency:tree`
+* Help Describe: `mvn help:describe` -- describes the attributes of a plugin
+* Help Effective POM: `mvn help:effective-pom`
+
+[TOC](#contents)
+
