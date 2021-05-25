@@ -2,6 +2,12 @@ Maven
 =====
 Contents
 --------
+* [Maven Basics](#maven-basics)
+    * [Maven Coordinates](#maven-coordinates)
+    * [Snapshot Versions](#snapshot-versions)
+    * [Maven Repositories](#maven-repositories)
+    * [Dependency Scope](#dependency-scope)
+    * [Maven Standard Directory Layout](#maven-standard-directory-layout)
 * [Maven Build Lifecycles](#maven-build-lifecycles)
     * [How to list available goals of a plugin](#how-to-list-available-goals-of-a-plugin)
     * [Pre-defined lifecycles](#pre-defined-lifecycles)
@@ -15,6 +21,61 @@ Contents
     * [Maven Clean Plugin](#maven-clean-plugin)
     * [Maven Compiler Plugin](#maven-compiler-plugin)
     * [Other Plugins](#other-plugins)
+
+Maven Basics
+------------
+
+### Maven Coordinates
+* Maven Coordinates are used to identify artifacts
+* Together bhey identify a 'location' in a Maven repository
+    * __groupId__ - Typically unique to an organization
+    * __artifactId__ - typically the proejct name
+    * __version__ - specific version of the project
+* __groupId__ and __version__ can be inherited from a parent POM.
+
+[TOC](#contents)
+
+### Snapshot Versions
+* Example: 3.2.1-SNAPSHOT
+* Tells Maven this is a development version
+* Not stable, Maven should check for newer versions
+* Maven will first check locally, then check remote repositories
+* By default, Maven will check remote repositories once per day (this option is configurable)
+
+[TOC](#contents)
+
+### Maven Repositories
+* Repositories are a location where project artifacts are stored
+* Types:
+    * Local - userhome/.m2/
+    * Central - hosted by Maven community
+    * Remote - other locations hosted by companies
+
+[TOC](#contents)
+
+### Dependency Scope
+* __Compile__ - Default. Available on all classpaths of project. Also propagated to downstream projects.
+* __Provided__ - Like Compile, but expected to be provided by JDK or contatiner at runtime.
+* __Runtime__ - Not required for compile, but needed for runtime. On runtime and test classpaths, not compile.
+* __Test__ - Only available on test classpath, not transitive.
+* __System__ - Similar to provided, but JAR is added to system explicitly. (via file path)
+* __Import__ - Imports dependency of POM
+
+[TOC](#contents)
+
+### Maven Standard Directory Layout
+```
+src
+    main
+        java
+        resources
+    test
+        java
+        resources
+```
+[Maven guide: introduction-to-the-standard-directory-layout](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html)
+
+[TOC](#contents)
 
 Maven Build Lifecycles
 ----------------------
@@ -97,7 +158,10 @@ Maven Build Lifecycles
 | install   | Install the package into the local repository, for use as a dependency in other projects locally. |
 | deploy    | Done in integration or release environment, copies the final package to the remote repository for sharing with other developers and projects. |
 
-Source: [introduction-to-the-lifecycle](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
+Source:  
+[introduction-to-the-lifecycle](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)  
+[Lifecycles Reference](https://maven.apache.org/ref/3.8.2/maven-core/lifecycles.html)  
+[Plugin Bindings for default Lifecycle Reference](https://maven.apache.org/ref/3.8.2/maven-core/default-bindings.html)
 
 [TOC](#contents)
 
@@ -165,4 +229,3 @@ How to add plugin execution to a specific phase (example):
 * Help Effective POM: `mvn help:effective-pom`
 
 [TOC](#contents)
-
