@@ -21,7 +21,11 @@ Contents
     * [Maven Clean Plugin](#maven-clean-plugin)
     * [Maven Compiler Plugin](#maven-compiler-plugin)
     * [Other Plugins](#other-plugins)
-
+    * [Generating Source with Maven](#generating-source-with-maven)
+        * [XSD to Java](#xsd-to-java)
+        * [JSON to Java](#json-to-java)
+        * [Use MapStruct to generate Java classes](#use-mapstruct-to-generate-java-classes)
+        
 Maven Basics
 ------------
 
@@ -227,5 +231,38 @@ How to add plugin execution to a specific phase (example):
 * Dependency Tree: `mvn dependency:tree`
 * Help Describe: `mvn help:describe` -- describes the attributes of a plugin
 * Help Effective POM: `mvn help:effective-pom`
+
+[TOC](#contents)
+
+Generating Source with Maven
+----------------------------
+
+### XSD to Java
+* Create XML Schema (xsd)
+* Use `maven-jaxb2-plugin`
+* Run `mvn package`
+* View generated sources in `target/generated-sources/xjc/` folder
+* All compiler classes are packed into JAR file
+* Example project: [mavenjaxb](https://github.com/dpopkov/sfg/sfgmaven/mavenjaxb)
+
+[TOC](#contents)
+
+### JSON to Java
+* Create JSON Schema
+* Use `jsonschema2pojo-maven-plugin`
+* Run `mvn package`
+* View generated sources in `target/generated-sources/xjc/` folder
+* All compiler classes are packed into JAR file
+* Example project: [mavenjson](https://github.com/dpopkov/sfg/sfgmaven/mavenjson)
+* [jasonschema2pojo Maven Plugin Docs](https://joelittlejohn.github.io/jsonschema2pojo/site/0.5.1/generate-mojo.html)
+
+[TOC](#contents)
+
+### Use MapStruct to generate Java classes
+* Add dependency for `mapstruct`
+* Configure compiler plugin
+* Create mapper using @Mapper annotation
+* Example project: [mavenjson](https://github.com/dpopkov/sfg/sfgmaven/mavenmapstruct)
+* [MapStruct Documentation](https://mapstruct.org/)
 
 [TOC](#contents)
