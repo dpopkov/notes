@@ -25,7 +25,17 @@ Contents
         * [XSD to Java](#xsd-to-java)
         * [JSON to Java](#json-to-java)
         * [Use MapStruct to generate Java classes](#use-mapstruct-to-generate-java-classes)
-        
+* [Alternative JVM Languages](#alternative-jvm-languages)
+    * [Compile Groovy with Maven](#compile-groovy-with-maven)
+    * [Compile Kotlin with Maven](#compile-kotlin-with-maven)
+    * [Compile Scala with Maven](#compile-scala-with-maven)
+* [Testing with Maven](#testing-with-maven)
+    * [Using Maven Surefire for POJO Unit Tests](#using-maven-surefire-for-pojo-unit-tests)
+    * [Using Maven Surefire for Spock Tests](#using-maven-surefire-for-spock-tests)
+    * [Generating Test Reports with Maven](#generating-test-reports-with-maven)
+    * [Running Integration Tests with Maven Failsafe](#running-integration-tests-with-maven-failsafe)
+    * [Test Coverage with Jacoco](#test-coverage-with-jacoco)
+    
 Maven Basics
 ------------
 
@@ -264,5 +274,95 @@ Generating Source with Maven
 * Create mapper using @Mapper annotation
 * Example project: [mavenjson](https://github.com/dpopkov/sfg/sfgmaven/mavenmapstruct)
 * [MapStruct Documentation](https://mapstruct.org/)
+
+[TOC](#contents)
+
+Alternative JVM Languages
+-------------------------
+
+### Compile Groovy with Maven
+* Use [groovy-eclipse maven plugin](https://github.com/groovy/groovy-eclipse/wiki/Groovy-Eclipse-Maven-plugin)
+* Put Groovy classes into `src/main/groovy`
+* Add path to groovy-eclipse-batch jar in Groovy-Eclipse options in IDEA settings
+* Example project: [mavengroovy](https://github.com/dpopkov/sfg/sfgmaven/mavengroovy)
+
+[TOC](#contents)
+
+### Compile Kotlin with Maven
+* See [Documentation on configuring Maven to support Kotlin](https://kotlinlang.org/docs/maven.html)
+* Add Kotlin version and dependency
+* Add Kotlin plugin execution into `plugins` section
+* Re-configure `maven-compiler-plugin`
+* Example project: [mavenkotlin](https://github.com/dpopkov/sfg/sfgmaven/mavenkotlin)
+
+### Compile Scala with Maven
+* Can be compiled with Java 8 only
+
+[TOC](#contents)
+
+Testing with Maven
+------------------
+* __Unit Testing__ is completed by the Maven Surefire Plugin
+* __Integration Testing__ is completed by the Maven Failsafe Plugin
+* Surefire/Failsafe support:
+    * POJO tests
+    * JUnit 3-5
+    * TestNG
+    
+[TOC](#contents)
+
+### Using Maven Surefire for POJO Unit Tests
+* Do not add any dependencies for JUnit or TestNG
+* Create test class and methods beginning with 'test'
+* Use plain Java assert(test-condition) 
+* Run `mvn test`
+
+[TOC](#contents)
+
+### Using Maven Surefire for Spock Tests
+
+* Add support for Groovy and JUnit 4 ([Example Project Groovy](https://github.com/dpopkov/sfg/sfgmaven/mavengroovy), [Example Project JUnit 4](https://github.com/dpopkov/sfg/sfgmaven/maventestingjunit4))
+* Re-configure `maven-surefire-plugin` to use version >= 2.22.0
+* Add dependency for Spock with version <= Groovy version
+* Add Java class and Spock test (Intellij puts the test into test/java folder, you should move it into test/groovy)
+* Add path to groovy-eclipse-batch jar in Groovy-Eclipse options in Java Compiler section of IDEA settings
+* Check with `mvn test`
+* You may either remove `groovy-all` or add dependency for `surefire-junit-platform` to `maven-surefire-plugin`
+* Add support for JUnit 5 (including `junit-jupiter-api`, `junit-jupiter-engine`, `junit-vintage-engine`)
+* Add JUnit 5 test
+* Check with `mvn test`
+* [Example Project Spock](https://github.com/dpopkov/sfg/sfgmaven/mavenspock)
+
+[TOC](#contents)
+
+### Generating Test Reports with Maven
+* Add `reporting` section containing `maven-surefire-report-plugin`
+* Add `maven-site-plugin` with recent version to `build` section 
+* Run `mvn site` phase
+* View Surefire Report
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspock)
+
+[TOC](#contents)
+
+### Running Integration Tests with Maven Failsafe
+* By default, the Failsafe plugin includes test classes with patterns: IT\*.java, \*IT.java, \*ITCase.java
+* Test classes can be included or excluded in the plugin `configuration` section
+* Add `maven-failsafe-plugin` to `build` section and specify execution goals to hook into phases integration-test and verify
+* Calling `mvn test` will run unit tests only 
+* Calling `mvn verify` will run both unit and integration tests 
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/maventestingintegration)
+
+[TOC](#contents)
+
+### Test Coverage with Jacoco
+* Read [Creating Code Coverage Reports for Unit and Integration Tests With the JaCoCo Maven Plugin](https://www.petrikainulainen.net/programming/maven/creating-code-coverage-reports-for-unit-and-integration-tests-with-the-jacoco-maven-plugin/)
+* Add `jacoco-maven-plugin` to `build, plugins` section
+* Add execution for unit tests
+* Add execution for integration tests
+* Configure `maven-surefire-plugin` to use `surefireArgLine` property
+* Configure `maven-failsafe-plugin` to use `failsafeArgLine` property
+* Call `mvn verify`
+* View reports in `target/site/jacoco-ut/`, `target/site/jacoco-it/`
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/maventestingintegration)
 
 [TOC](#contents)
