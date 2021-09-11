@@ -35,6 +35,13 @@ Contents
     * [Generating Test Reports with Maven](#generating-test-reports-with-maven)
     * [Running Integration Tests with Maven Failsafe](#running-integration-tests-with-maven-failsafe)
     * [Test Coverage with Jacoco](#test-coverage-with-jacoco)
+    * [Maven Spot Bugs Report](#maven-spot-bugs-report)
+    * [Skipping Unit and Integration Tests in Maven](#skipping-unit-and-integration-tests-in-maven)
+* [Multi-Module Projects](#multi-module-projects)
+    * [Externalize Version via Maven Property](#externalize-version-via-maven-property-since-maven-35)
+    * [Maven Flatten Plugin](#maven-flatten-plugin)
+    * [Maven Enforcer Plugin](#maven-enforcer-plugin)
+    * [Maven Bill of Materials (BOM)](#maven-bill-of-materials-bom)
     
 Maven Basics
 ------------
@@ -272,7 +279,7 @@ Generating Source with Maven
 * Add dependency for `mapstruct`
 * Configure compiler plugin
 * Create mapper using @Mapper annotation
-* Example project: [mavenjson](https://github.com/dpopkov/sfg/sfgmaven/mavenmapstruct)
+* Example project: [mapstruct](https://github.com/dpopkov/sfg/sfgmaven/mavenmapstruct)
 * [MapStruct Documentation](https://mapstruct.org/)
 
 [TOC](#contents)
@@ -364,5 +371,78 @@ Testing with Maven
 * Call `mvn verify`
 * View reports in `target/site/jacoco-ut/`, `target/site/jacoco-it/`
 * [Example Project](https://github.com/dpopkov/sfg/sfgmaven/maventestingintegration)
+
+[TOC](#contents)
+
+### Maven Spot Bugs Report
+* SpotBugs is FindBugs' successor. A tool for static analysis to look for bugs in Java code. 
+* [Using the SpotBugs Maven Plugin](https://spotbugs.readthedocs.io/en/stable/maven.html)
+* Add `spotbugs-maven-plugin` to `plugins` section
+* Add `spotbugs-maven-plugin` to `reporting` section
+* Add `maven-site-plugin` with recent version
+* Run `mvn site`
+* View `target/site/spotbugs.html`
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/maventestingintegration)
+
+[TOC](#contents)
+
+### Skipping Unit and Integration Tests in Maven
+* You can use 'Skip Tests' Mode in Intellij
+* You can add `<skipTests>true</skipTests>` property to skip all Tests
+* You can add `<skipITs>true</skipITs>` property to skip Integration Tests only
+* You can supply `-DskipTests` argument in command line to skip all Tests
+* You can supply `-DskipITs` argument in command line to skip Integration Tests only
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/maventestingintegration)
+
+[TOC](#contents)
+
+Multi-Module Projects
+---------------------
+* Use packaging `pom` in parent project
+* Create modules
+    * Manually:
+        * Create `module` entry in `modules` section in parent pom
+        * Create directory for module
+        * Create module pom which references the parent pom
+    * Using IDEA:
+        * project -> new -> module
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenmodules)
+
+[TOC](#contents)
+
+### Externalize Version via Maven Property (since Maven 3.5)
+* Set `revision` property and reference it in all parent `version` elements in module poms
+* Use `${project.version}` property for dependencies
+* You can pass it via command line using the `-Drevision=...`
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenmodules)
+
+[TOC](#contents)
+
+### Maven Flatten Plugin
+* It should be used for shared projects
+* It resolves variables and properties, so that `${project.version}` in module's pom will be replaced with a value
+* Read [Flatten Maven Plugin Usage Page](https://www.mojohaus.org/flatten-maven-plugin/usage.html)
+* Add `flatten-maven-plugin` to parent pom with configuration `<flattenMode>bom</flattenMode>`
+* Add `.flattened-pom.xml` to gitignore file
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenmodules)
+
+[TOC](#contents)
+
+### Maven Enforcer Plugin
+* It provides goals to control certain environmental constraints
+* Read about [Usage](https://maven.apache.org/enforcer/maven-enforcer-plugin/usage.html) and [Built-in Rules](https://maven.apache.org/enforcer/enforcer-rules/index.html)
+* Add `maven-enforcer-plugin` to build section, specify configuration rules (Java version, Maven version, etc.)
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenmodules)
+
+[TOC](#contents)
+
+### Maven Bill of Materials (BOM)
+* In Maven terminology, a BOM has become to mean dependencies declared within the `dependencyManagement` section of the POM
+* Fully qualified dependencies are listed under the `dependencyManagement` section of the POM
+* Dependencies declared under the `dependencies` section of the POM inherit from `dependencyManagement` (version/packaging)
+* It is typically used to standardized versions
+* Any dependencies declared in the `dependencyManagement` section __DO NOT__ become transitive dependencies for the artifact
+* Dependencies declared under the `dependencies` section __DO__ become transitive dependencies for the artifact
+* Typical is to declare a `dependencyManagement` section in the parent POM of the project or in a remote parent POM
 
 [TOC](#contents)
