@@ -42,6 +42,12 @@ Contents
     * [Maven Flatten Plugin](#maven-flatten-plugin)
     * [Maven Enforcer Plugin](#maven-enforcer-plugin)
     * [Maven Bill of Materials (BOM)](#maven-bill-of-materials-bom)
+* [Apache Maven for Spring Boot](#apache-maven-for-spring-boot)
+    * [Starter Dependencies](#starter-dependencies)
+    * [Running Spring Boot from Maven](#running-spring-boot-from-maven)
+    * [Spring Boot Integration Tests with Maven Failsafe](#spring-boot-integration-tests-with-maven-failsafe)
+    * [Generate Build Information with Maven](#generate-build-information-with-maven)
+    * [Add Git Information to Maven Build](#add-git-information-to-maven-build)
     
 Maven Basics
 ------------
@@ -444,5 +450,106 @@ Multi-Module Projects
 * Any dependencies declared in the `dependencyManagement` section __DO NOT__ become transitive dependencies for the artifact
 * Dependencies declared under the `dependencies` section __DO__ become transitive dependencies for the artifact
 * Typical is to declare a `dependencyManagement` section in the parent POM of the project or in a remote parent POM
+
+[TOC](#contents)
+
+Apache Maven for Spring Boot
+----------------------------
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
+
+### Starter Dependencies
+* All dependencies can be viewed in IDEA's Maven tool window
+* Or can be viewed using `mvn dependency:tree` command
+
+### Spring Boot Fat JAR
+* By default Maven creates a fat jar containing all the dependencies
+
+### Running Spring Boot from Maven
+* Run: `mvn spring-boot:run` or `mvn clean spring-boot:run`
+* Press `Cntrl+C` to terminate process
+
+[TOC](#contents)
+
+### Spring Boot Integration Tests with Maven Failsafe
+* Configure `sping-boot-maven-plugin`
+    * to start up the Spring Boot Application 
+    * then shut it down before and after the integration test
+    * configure [Failsafe Plugin](#running-integration-tests-with-maven-failsafe) for running integration tests
+    * [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
+    * example of `sping-boot-maven-plugin` config:
+    
+```xml
+<executions>
+    <execution>
+        <id>pre-it</id>
+        <goals>
+            <goal>start</goal>
+        </goals>
+    </execution>
+    <execution>
+        <id>post-it</id>
+        <goals>
+            <goal>stop</goal>
+        </goals>
+    </execution>
+</executions>
+```
+
+[TOC](#contents)
+
+### Generate Build Information with Maven
+* Manually call `spring-boot:build-info` to generate `build-info.properties` (in target/classes/META-INF folder)
+* Add configuration to application.properties:
+```properties
+management.endpoints.web.exposure.include=info, health
+management.endpoint.health.enabled=true
+management.endpoint.info.enabled=true
+```
+* Run the Spring Boot Application (with Actuator)
+* Go to `http://localhost:8080/actuator/info` to view the build information
+* You can add `execution` section to `spring-boot-maven-plugin` to automate generation of the build info:
+```xml
+<execution>
+    <id>build-info-goal</id>
+    <goals>
+        <goal>build-info</goal>
+    </goals>
+    <configuration>
+        <additionalProperties>
+            <java.version>${java.version}</java.version>
+            <some.custom.prop>${some.custom.prop}</some.custom.prop>
+        </additionalProperties>
+    </configuration>
+</execution>
+```
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
+
+[TOC](#contents)
+
+### Add Git Information to Maven Build
+* Add `git-commit-id-plugin` to build section
+```xml
+<plugin>
+    <groupId>pl.project13.maven</groupId>
+    <artifactId>git-commit-id-plugin</artifactId>
+    <!-- The version is provided in spring-boot-dependencies -->
+</plugin>
+```
+* Run compile or package and view `git.properties` in `target/classes/META-INF/`
+* Actuator is going to be looking for `git.properties` file
+* Now `actuator/info` gives some limited git information (commit id, time)
+* You can add `management.info.git.mode=full` to application.properties and get full git info
+* Attribute `git.dirty=true` means that there are some uncommitted changes in the project code
+* [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
+
+[TOC](#contents)
+
+### Multi-Module Spring Boot Projects
+* Refactor existing Spring Boot Project
+    * Add modules (e.g. `web-app`, `web-model`)
+    * Move existing packages from parent project to `web-app`
+    * Move corresponding plugins from parent to web-app module's pom
+    * Set property `spring-boot.repackage.skip` as `true` for web-model if `spring-boot-maven-plugin` stays in parent level
+    * [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
 
 [TOC](#contents)
