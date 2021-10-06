@@ -48,6 +48,11 @@ Contents
     * [Spring Boot Integration Tests with Maven Failsafe](#spring-boot-integration-tests-with-maven-failsafe)
     * [Generate Build Information with Maven](#generate-build-information-with-maven)
     * [Add Git Information to Maven Build](#add-git-information-to-maven-build)
+    * [Multi-Module Spring Boot Projects](file:///home/denjd/dev/github.me/notes/#multi-module-spring-boot-projects)
+* [Maven Repositories](#maven-repositories-1)
+* [Deploying Maven Projects to Packagecloud](#deploying-maven-projects-to-packagecloud)
+* [Deploying Maven Projects to Nexus](#deploying-maven-projects-to-nexus)
+* [Maven Build Profiles](#maven-build-profiles)
     
 Maven Basics
 ------------
@@ -551,5 +556,25 @@ management.endpoint.info.enabled=true
     * Move corresponding plugins from parent to web-app module's pom
     * Set property `spring-boot.repackage.skip` as `true` for web-model if `spring-boot-maven-plugin` stays in parent level
     * [Example Project](https://github.com/dpopkov/sfg/sfgmaven/mavenspringboot)
+
+[TOC](#contents)
+
+Maven Repositories
+------------------
+
+[TOC](#contents)
+
+Deploying Maven Projects to Packagecloud
+----------------------------------------
+
+[TOC](#contents)
+
+Deploying Maven Projects to Nexus
+---------------------------------
+
+[TOC](#contents)
+
+Maven Build Profiles
+--------------------
 
 [TOC](#contents)
