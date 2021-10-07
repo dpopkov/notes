@@ -53,6 +53,7 @@ Contents
 * [Deploying Maven Projects to Packagecloud](#deploying-maven-projects-to-packagecloud)
 * [Deploying Maven Projects to Nexus](#deploying-maven-projects-to-nexus)
 * [Maven Build Profiles](#maven-build-profiles)
+* [Maven Release Plugin](#maven-release-plugin)
     
 Maven Basics
 ------------
@@ -576,5 +577,66 @@ Deploying Maven Projects to Nexus
 
 Maven Build Profiles
 --------------------
+
+[TOC](#contents)
+
+Maven Release Plugin
+--------------------
+High level release process:
+1. Version 1.0.0-SNAPSHOT
+2. Version 1.0.0
+3. Version 1.0.1-SNAPSHOT
+
+### Maven Release Plugin Goals
+* __Prepare__ Release: `mvn clean release:prepare`
+    * Check no uncommitted changes
+    * Check no snapshot dependencies
+    * Update to release version
+    * Run Tests
+    * Commit the modified POM
+    * Tag the code in SCM with a version name
+    * Bump to next Snapshot version
+    * Commit the modified POM
+* __Rollback__: `mvn release:rollback`
+    * to rollback (local) preparation and return to previous (snapshot) version.
+    * the tag committed to SCM will stay, it needs to be removed manually.
+* __Perform__ Release: `mvn release:perform`
+    * Checkout of SCM with SCM tag
+    * Run the predefined Maven release goals
+        * by default, `deploy site-deploy`
+    * Remove release files
+    * Checkout of SCM master
+    
+### Maven SCM Configuration
+Under the covers, the Maven Release Plugin is using the Maven SCM Plugin to interact with
+the project's SCM.
+#### Configuration
+* The SCM is defined in the SCM section of the POM.
+* The `connection` element defines the read URL.
+* The `developerConnection` element defines the write URL.
+* The URL is prefixed with `scm:[scm-provider]:[SCM URL]`.
+    * Example - `scm:git:git@github.com:dpopkov/springsfg.git`
+* The tag element defines the tag project is under (defaults to HEAD)
+* The url element defines the public repository URL.
+```xml
+<scm>
+    <developerConnection>scm:git:git@github.com:springframeworkguru/mb2g-release-plugin.git</developerConnection>
+    <url>https://github.com/springframeworkguru/mb2g-release-plugin</url>
+    <tag>HEAD</tag>
+</scm>
+```
+
+### Maven Release Plugin in POM
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-release-plugin</artifactId>
+    <version>2.5.3</version>
+    <configuration>
+        <goals>install</goals>  <!-- By default goal is deploy, we do not want to deploy now. -->
+        <autoVersionSubmodules>true</autoVersionSubmodules>
+    </configuration>
+</plugin>
+```
 
 [TOC](#contents)
