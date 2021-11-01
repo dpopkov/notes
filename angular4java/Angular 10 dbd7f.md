@@ -88,9 +88,20 @@ It creates component and changes *app.module.ts* which contains declarations and
 
 ### 31 Template expressions (3m)
 
+Template interpolation simply means that we can have a variable in our TypeScript file and we can reference that variable from our HTML or we can bind part of our HTML to a property in the backing class.
+
 `<h1>{{ pageName }}</h1>`
 
-32 Template expressions are dynamic (4m)
+### 32 Template expressions are dynamic (4m)
+
+If we were to change the value of the variable *pageName* in our code, the HTML would be automatically updated to see this updated variable value.
+
+```tsx
+ngOnInit(): void {
+    // This callback proves that template expressions are dynamic
+    setTimeout(() => { this.pageName = 'First page' }, 5000);
+}
+```
 
 ## Chapter 7 - Simple event binding
 
@@ -105,32 +116,92 @@ onButtonClick(): void {
 
 ### 34 Event binding (6m)
 
-Template interpolation is a way to get information from code into HTML. The next thing we’d like to look at is *event binding*. This is the ability to invoke Typescript methods from the HTML. The idea is that rather than binding to a property or a variable in our code file, we are going to be creating a method in our code file and will bind the method to an event, which can occur when the HTML runs.
+Template interpolation is a way to get information from code into HTML. The next thing we’d like to look at is *event binding*. This is the ability to invoke Typescript methods from the HTML. The idea is that rather than binding to a property or a variable in our code file, we are going to be creating a method in our code file and will bind the method to an event, which can occur when the HTML runs. For example a button click might be an event that would want to trigger some code that we write.
+
+HTML: `<button (click)="onButtonClick()">Greet me</button>`
+
+```tsx
+onButtonClick(): void {
+  alert('Hello - the date today is ' + new Date());
+}
+```
 
 35 Exercise 2 - event binding (3m)
 
-36 Exercise 2 - solution walkthrough (2m)
+### 36 Exercise 2 - solution walkthrough (2m)
+
+HTML:
+
+```html
+<div class="header">
+  <div class="link"><a (click)="onPageChange(1)">Page 1</a></div>
+  <div class="link"><a (click)="onPageChange(2)">Page 2</a></div>
+  <div class="link"><a (click)="onPageChange(3)">Page 3</a></div>
+</div>
+```
+
+Typescript (only changes value of the variable *pageRequested*):
+
+```tsx
+pageRequested = 1;
+
+onPageChange(page: number): void {
+  this.pageRequested = page;
+  console.log('Changed page to', this.pageRequested);
+}
+```
 
 ## Chapter 8 - Component interaction - reading properties
 
 ### 37 Using the hidden HTML attribute (5m)
 
-Selective Display: on any HTML element in Angular, there are two ways that we can choose whether or not we want to display it. We can either use an Angular feature, or we could use the simple HTML property - *hidden*: `<div hidden>`
+Selective Display - choosing whether or not to display a part of a page, based on some kind of dynamic variable or expression that we need to calculate.
 
-38 Angular 10 changes
+On any HTML element in Angular, there are two ways that we can choose whether or not we want to display it. We can either use an Angular feature, or we could use the simple HTML property - *hidden*: `<div hidden>`
+
+The **concept** of using *hidden* (it is not working solution but just an illustration) in app.component.html:
+
+```html
+<app-page1 hidden="pageRequested != 1"></app-page1>
+<app-page2 hidden="pageRequested != 2"></app-page2>
+<app-page3 hidden="pageRequested != 3"></app-page3>
+```
+
+### 38 Angular 10 changes
+
+When using @ViewChild decorator the 2nd parameter ({static: true}) is no longer needed.
 
 ### 39 Accessing properties of a child component (7m)
 
-To bind an HTML attribute we use *square* brackets. The we give header component a name - give *template reference*. It is a name preceded with *hash symbol* - #.
+To *bind* an HTML attribute we use *square* brackets. Then we give header component a name - give *template reference*. It is a name preceded with *hash symbol* - #.
+
+Version 1 of *the selective display* in the app.component.html using now the *hidden* attribute and the variable *pageRequested* in a child component:
 
 ```html
+<!-- Give the child component a template reference -->
 <app-header #headerComponent></app-header>
+<!-- Use template reference and bound HTML attribute -->
 <app-page1 [hidden]="headerComponent.pageRequested !== 1"></app-page1>
 <app-page2 [hidden]="headerComponent.pageRequested !== 2"></app-page2>
 <app-page3 [hidden]="headerComponent.pageRequested !== 3"></app-page3>
 ```
 
-40 The ***ngIf** structural directive (5m)
+### 40 The ***ngIf** structural directive (5m)
+
+There is an alternative way of achieving the same thing. In the 2nd version we’re going to use a structural directive of Angular called ***ngIf**. 
+
+```html
+<!-- Give the component a template reference -->
+<app-header #headerComponent></app-header>
+<!-- Use template reference and *ngIf structural directive -->
+<app-page1 *ngIf="headerComponent.pageRequested === 1"></app-page1>
+<app-page2 *ngIf="headerComponent.pageRequested === 2"></app-page2>
+<app-page3 *ngIf="headerComponent.pageRequested === 3"></app-page3>
+```
+
+With the hidden attribute, the elements are always in the DOM. With ***ngIf** we’re not saying to hide or show the selectors, we’re saying include them or exclude them from the DOM.
+
+There will be instances where ***ngIf** can cause a problem.
 
 ## Chapter 9 - Component interaction - property binding
 
@@ -144,7 +215,35 @@ Scenario is this:
 
 We need to create a property in one of the child components. We’ll pick the footer this time.
 
+Typescript: `lastAccessed = '';`
+
+HTML: `<p>Last accessed: {{ lastAccessed }}</p>`
+
 We’re going to create a button on the parent component, which will update the value in this property of the child.
+
+app.component.html:
+
+```html
+<app-footer #footer></app-footer>
+<button (click)="updateLastAccessed()">Update last accessed</button>
+```
+
+app.component.ts:
+
+```tsx
+@ViewChild('footer')
+footerComponent: FooterComponent;
+
+updateLastAccessed(): void {
+  console.log('Button "Update last accessed" was clicked');
+  console.log('The previous was', this.footerComponent.lastAccessed)
+  let lastAccessed = new Date().toString();
+  this.footerComponent.lastAccessed = lastAccessed;
+  console.log('lastAccessed updated to', lastAccessed)
+}
+```
+
+b
 
 ### 42 Accessing properties from code (7m)
 
