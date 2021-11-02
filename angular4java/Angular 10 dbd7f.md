@@ -243,18 +243,12 @@ updateLastAccessed(): void {
 }
 ```
 
-b
+### 42 Accessing properties from code (7m) - ViewChile decorator
 
-### 42 Accessing properties from code (7m)
-
-First declare an object that matches the correct type for the child, then give the child a template reference in the HTML, and then use the @ViewChild decorator to connect the two together:
-
-```html
-<app-footer #footer></app-footer>
-```
+First declare an object that matches the correct type for the child, then give the child a template reference in the HTML, and then use the @ViewChild decorator to connect the two together. Code in app.component.ts:
 
 ```tsx
-@ViewChild('footer')
+@ViewChild('footer')  // footer - template reference in HTML
 footerComponent: FooterComponent;
 
 updateLastAccessed(): void {
@@ -262,7 +256,13 @@ updateLastAccessed(): void {
 }
 ```
 
-### 43 The @Input Decorator (6m)
+Template reference (*footer*) in app.component.html:
+
+```html
+<app-footer #footer></app-footer>
+```
+
+### 43 The @Input Decorator (6m) - writing to property from HTML
 
 We’re going to write to a child property from the HTML.
 
@@ -276,11 +276,15 @@ ngOnInit(): void {
 }
 ```
 
-In the HTML where we define the footer we want to set the value of property lastAccessed. We bind to lastAccessed by putting it in square brackets in the HTML and applying the `@Input()` decorator in *FooterComponent* code file:
+In the HTML where we define the footer we want to set the value of property lastAccessed. We bind to lastAccessed by putting it in square brackets in the HTML and applying the `@Input()` decorator in *FooterComponent* code file.
+
+app.component.html:
 
 ```html
 <app-footer #footer [lastAccessed]="startTime"></app-footer>
 ```
+
+footer.component.ts:
 
 ```tsx
 @Input()
@@ -289,13 +293,50 @@ lastAccessed = '';
 
 ## Chapter 10 - Component interaction - event binding
 
-### 44 Why we need custom events (5m)
+### 44 Why we need custom events (5m) - child accessing parent
 
 At the end of chapter 8 we explained that sometimes using ***ngIf** to show or hide a component or rather to include it or exclude it from the DOM can sometimes be problematic. And in this chapter we’ll understand why by learning a bit more about how components can interact with each other.
 
-It’s time to see how a child can access the properties and methods of a parent component. Let’s imagine that you want to have a hit counter for one of our pages. Let’s start by creating the hit counter within page two.
+So far we have seen how a parent component can interact with a child component. This is a one way interaction. The parent can read or amend a property of a child.
 
-Text not finished ...
+Now it’s time to see how a child can access the properties and methods of a parent component. Let’s imagine that you want to have a hit counter for one of our pages. Let’s start by creating the hit counter within page two.
+
+page2.component.ts:
+
+```tsx
+hits = 0;
+
+incrementHitCounter(): void {
+  this.hits++;
+}
+```
+
+page2.component.html:
+
+```html
+<p>This page has had {{ hits }} hits</p>
+```
+
+We want to amend the variable *hits* by calling this *incrementHitCounter()* method every time the page is displayed. The determination of when page2 is displayed is something that is initiated in the header component. We have a method *onPageChange(page: number)* in it which is run whenever the links are clicked on. And if we look at the content of that method, that’s currently setting the local variable *pageRequested*. 
+
+```tsx
+onPageChange(page: number): void {
+  this.pageRequested = page;
+  console.log('Changed page to', this.pageRequested);
+}
+```
+
+What we’d really like to do in this method is somehow access the *incrementHitCounter()* method of our page2 component whenever the method is setting *pageRequested* equal to 2.
+
+You can see that this isn’t going to be completely straightforward. The method we want to call is in the page2 component. But the *onPageChange()* method takes place in the header component. The header component and the page2 component are both children of the app component, but they have on relationship with each other. They are siblings, but they can’t see each other or communicate with each other.
+
+The reason for that is clear. There’s a relationship between app and header, because the selector for the header appears in the HTML for the app component. And there’s a relationship between page2 and app, because the selector for the page2 appears in the HTML for the app component. But there’s no selector for the header in the page2 component, and there’s no selector for page2 in the header component.
+
+In order to communicate between header and page2 we’ll need to find some kind or root between them, and that will therefore involve the app component. We’ll need to get a message from the header to the app component and from the app component to the page2 component. The second part - communicating between app and page2 - can be done using property binding, because that is a parent talking to a child. But the first part - communicating from header to app, that’s from the child to a parent - needs something a little different. A child can never see the property or method of it’s parent. 
+
+There is a different model that we use. The way that this works is that the child can send a message to it’s parent. It can tell the parent that something has happened, and the parent can determine what it wants to do as a result of receiving that message.
+
+In our example the header component can send a message to the app component. The correct terminology here actually is that this is an **event**. We say that the child has an **event** which can occur and the parent can listen our to these **events**. Actually the fact that this is parent-child relationship becomes irrelevant. The idea is that on component can be sending out events and any other component within our application can be listening tor those events. In fact potentially multiple places could be listening for those events.
 
 ### 45 Creating an event emitter (7m)
 
@@ -303,14 +344,14 @@ What we’re now going to be doing is creating our own events to bind to. When t
 
 So to use the correct language we can create event, and then bind to that event and run some code every time the event takes place.
 
-So that we can bind to the new *pageChangedEvent* of our header, we need to create this within the header component as an event and apply the `@Output` decorator to make this event bindable from outside of the component:
+We could bind to the click event of a button because HTML’s have an *onclick* event. So that we can bind to the new *pageChangedEvent* of our header, we need to create this within the header component as an event. To do that we declare the variable in our header component of type **EventEmitter**. We need to do something extra to make this event bindable from outside of the component. We apply the `@Output` decorator to make this event bindable.
 
 ```tsx
 @Output()
 pageChangedEvent = new EventEmitter();
 ```
 
-We use `@Input` decorator to allow a parent to set a child property in HTML. It means this property is something that’s going to be set externally. `@Output` says that this is going to be sending out an event. It’s going to be sending data outside of this particular component and something, probably the parent, is going to be listening out for that output event. So by having the `@Output` decorator we can then bind to this event just like we did the *click* event.
+We use `@Input` decorator to allow a parent to set a child property in HTML. It means this property is something that’s going to be set externally. `@Output` says that this is going to be sending out an event. It’s going to be sending data outside of this particular component and something, probably the parent, is going to be listening out for that output event. By having the `@Output` decorator we can then bind to this event just like we did the *click* event or the *mouseenter* event.
 
 We know that the header component how has an event that we can bind to:
 
@@ -318,16 +359,40 @@ We know that the header component how has an event that we can bind to:
 <app-header (pageChangedEvent)="incrementHitCounter()"></app-header>
 ```
 
-When our *pageChangeEvent* occurs we want to increment our hit counter. That’s a method on the page 2 component. We can reference *Page2Component* within our *AppComponent*. We want our *pageChangeEvent* to call local *incrementHitCounter()* method within the *AppComponent*.
+When our *pageChangeEvent* occurs we want to increment our hit counter. That’s a method on the page2 component. We can reference *Page2Component* within our *AppComponent*. We want our *pageChangeEvent* to call local *incrementHitCounter()* method within the *AppComponent*.
+
+app.component.ts:
+
+```tsx
+@ViewChild('page2Component')
+page2Component: Page2Component;
+
+incrementHitCounter(): void {
+  this.page2Component.incrementHitCounter();
+}
+```
+
+app.component.html:
+
+```html
+<app-header (pageChangedEvent)="incrementHitCounter()"></app-header>
+<app-page1 [hidden]="currentPage !== 1"></app-page1>
+<app-page2 [hidden]="currentPage !== 2" #page2Component></app-page2>
+<app-page3 [hidden]="currentPage !== 3"></app-page3>
+```
 
 Now we only have to trigger that *pageChangeEvent*.
 
 ### 46 Triggering an event (2m)
 
-To trigger call *emit()* method:
+To trigger call *emit()* method in header.component.ts:
 
 ```tsx
-this.pageChangedEvent.emit()
+onPageChange(page: number): void {
+  this.pageRequested = page;
+  console.log('Changed page to', this.pageRequested);
+  this.pageChangedEvent.emit();
+}
 ```
 
 The hit counter will be incrementing too much, because we haven’t done anything that says this is only to work on page two. It’s currently working on every link that we click on.
@@ -393,9 +458,9 @@ Having done that, it means that in the HTML we can reference this variable *curr
 <app-page3 [hidden]="currentPage !== 3"></app-page3>
 ```
 
-To finish this chapter, we should look again at the difference between using ***ngIf** and **hidden** attribute to choose whether or not to display a component within our page. The things aren’t going to quite work correctly if we use *ngIf. 
+To finish this chapter, we should look again at the difference between using ***ngIf** and **hidden** attribute to choose whether or not to display a component within our page. The things aren’t going to quite work correctly if we use ***ngIf**. 
 
-If we revert back to *ngIf then page 2 always has zero hits. Our hit counter appears to be broken. The thing is that our *page2Component* is defined using @ViewChild decorator. But the *page2Component* may not always be in the DOM because we’re using *ngIf which changes structure of the DOM. That is the difference between *ngIf and *hidden* to do selective display. You can run into difficulties, if using *ngIf you’re trying to access data within the components. As a general rule, if you’re using *template references* do not use *ngIf on the same object, because if you do, that *template reference* may not always exist.
+If we revert back to *ngIf then page2 always has zero hits. Our hit counter appears to be broken. The thing is that our *page2Component* is defined using `@ViewChild` decorator. But the *page2Component* may not always be in the DOM because we’re using ***ngIf** which changes structure of the DOM. That is the difference between ***ngIf** and *hidden* to do selective display. You can run into difficulties, if using ***ngIf** you’re trying to access data within the components. As a general rule, if you’re using *template references* do not use ***ngIf** on the same object, because if you do, that *template reference* may not always exist.
 
 Now we leave this simple project. 
 

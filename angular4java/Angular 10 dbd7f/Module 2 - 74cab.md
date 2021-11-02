@@ -14,9 +14,9 @@
 - symbol
 - null - means the variable has not been given a valid value
 - undefined - means the a variable has not been initialized
-- Array - like Java *List*
-- Tuple - is an Array of fixed size of any type of object
-- any - can be used to represent any data type, it can encompass anything at all
+- Array - like Java *List*, can grow and shrink
+- Tuple - is an “Array of fixed size” of any type of object
+- any - can be used to represent any data type, it can encompass *anything at all*
 - object - can be used to represent any *non-primitive* data type
 - void - return type for a method that doesn’t return anything
 
@@ -28,12 +28,14 @@ export class AppComponent {
   readonly immutableNumber: number = 42;
 
   declaringVariablesInMethod(): void {
-    let anotherNumber = 0;
-    const thirdNumber = 123;
+    let anotherNumber = 0;    // mutable variable
+    const thirdNumber = 123;  // immutable variable, value cannot change
 
     anotherNumber = 321;
-    // anotherNumber = 'Hello'; // error
-    // thirdNumber = 321; // error
+    // anotherNumber = 'Hello'; // error - attempt to change type
+    // thirdNumber = 321; // error - assigning value to const variable
+    console.log('myNumber = ', this.myNumber);
+    console.log('immutableNumber = ', this.immutableNumber);
     console.log('anotherNumber = ', anotherNumber)
     console.log('thirdNumber = ', thirdNumber)
   }
@@ -44,26 +46,30 @@ export class AppComponent {
 
 ```tsx
 exploringArrays(): void {
-  const myArray1 = new Array<number>(5);        // Java style
-  const myArray2 : Number[] = [11, 22, 33, 44]; // JavaScript style
+  // const myArray1 : Array<number>;   // declaring Java style
+  // const myArray2 : Number[];        // declaring JavaScript style
+  const myArray1 = new Array<number>(5);      // instantiating Java style
+  const myArray2 : Number[] = [11, 22, 33, 44]; // instantiating JS style
+  // const myArray2 : Number[] = [];      // instantiating emtpy array
 
   console.log('myArray1 = ', myArray1);
   console.log('myArray2 = ', myArray2);
 
   console.log('myArray2[1] = ', myArray2[1]);
-  // Slice method
+  // Slice method - returns sub-array
   console.log('myArray2.slice(0, 1) = ', myArray2.slice(0, 1));
   console.log('myArray2.slice(0, 2) = ', myArray2.slice(0, 2));
   console.log('myArray2.slice(0, 3) = ', myArray2.slice(0, 3));
   console.log('myArray2.slice(1, 3) = ', myArray2.slice(1, 3));
-  // Splice method
+  // Splice method - deletes objects from the source array
+  // 2nd parameter - number of items to delete
   console.log('myArray2.splice(1, 2) = ', myArray2.splice(1, 2));
   console.log('myArray2 = ', myArray2);
-  // Push method
+  // Push method - adds item to the end of the list
   myArray2.push(55);
   myArray2.push(56);
   console.log('myArray2 = ', myArray2);
-  // Pop method
+  // Pop method - removes item from the end of the list
   let pop1 = myArray2.pop();
   console.log('myArray2.pop() = ', pop1);
   let pop2 = myArray2.pop();
@@ -110,6 +116,8 @@ exploringWhileLoops(): void {
 
 ## 56 Understanding JavaScript objects (3m)
 
+Because TypeScript is compiled to JavaScript, the classes that we create don’t actually exist at runtime. What happens is that the code we enter will be converted to pure JavaScript and the class definitions that we create won’t actually exist. When we program in Angular however, we are writing in TypeScript, so we’ll be using classes just like we do in Java. But it would be worth understanding before we start learning about classes, that JavaScript has the concept of an object. An object in JS is a set of key-value pairs and we can create them in exactly the same way in TypeScript. So you do something like this:
+
 ```tsx
 understandingJavaScriptObjects(): void {
   let myCustomer = {
@@ -117,24 +125,36 @@ understandingJavaScriptObjects(): void {
     age: 29
   }
   console.log('myCustomer = ', myCustomer);
+	// the type of myCustomer is 'object'
   console.log('typeof myCustomer = ', (typeof myCustomer));
 }
 ```
 
+Using JavaScript object does have a limited use in TypeScript, because it’s not as powerful as having classes and objects created from those classes. But it’s important to understand that these exist because some of the time we might think we have a class instance, but actually we have a JavaScript object. We will see that in module 4 when we’ll work with REST, when we’ll need to be able to convert a JavaScript object into an instance of one of our classes.
+
 ## 57 Creating classes (5m)
 
+Unlike Java there is no one-to-one relationship between classes and the files. We can create multiple “public” classes in one file which can have any sensible name.
+
+Model.ts:
+
 ```tsx
-export class Book {
+export class Book {     // modifier 'export' makes the class public
   private title: string;
   private author: string;
   private price: number;
+}
+export class Video {
+  title: string;   // public attribute
+  author: string;  // public attribute
+  price: number;   // public attribute
 }
 ```
 
 ```tsx
 creatingClasses(): void {
-  const myBook = new Book();
-  let myVideo : Video;
+  const myBook = new Book();  // inctantiating
+  let myVideo : Video;        // declaring
 }
 ```
 
@@ -143,10 +163,11 @@ creatingClasses(): void {
 ```tsx
 export class Book {
   readonly id: number = 101;
-  title: string;
-  author: string;
-  private _price: number;
+  title: string;   // public attribute
+  author: string;  // public attribute
+  private _price: number;  // IDE renamed the property adding '_'
 
+  // Getters and setters can be generated by IDE
   get price(): number {
     return this._price;
   }
@@ -161,9 +182,14 @@ export class Book {
 }
 ```
 
+Having private attributes with getters and setters is really quite pointless unless you’ve got some kind of business logic you want to put within the get or set method. If not, then the absolutely standard thing to do in TypeScript is just simply make the attributes public.
+
 ## 59 Constructors and methods (10m)
 
 ```tsx
+author: string;
+title: string;
+
 constructor(author: string, title?: string) {
   this.author = author;
   if (title) {  // optional parameter
@@ -172,11 +198,11 @@ constructor(author: string, title?: string) {
 }
 ```
 
-Typescript methods: *methodName(paramName: paramType): ReturnType*
+Typescript methods signature: *methodName(paramName: paramType): ReturnType*
 
 By default, in Typescript, methods are public.
 
-Arrow functions:
+Arrow functions (full syntax):
 
 ```tsx
 exploringArrowFunctions(): void {
@@ -189,7 +215,7 @@ exploringArrowFunctions(): void {
 }
 ```
 
-or shorter:
+or shorter (syntax for one line functions):
 
 ```tsx
 const evenNumbers = numbers.filter(num => num % 2 === 0);
