@@ -476,6 +476,8 @@ Now we leave this simple project.
 
 - Functioning Angular front-ends
 
+[Module 3 - Building a real site](Angular%2010%20dbd7f/Module%203%20-%2053cca.md)
+
 # Module 4 - Connecting to a REST back end
 
 after

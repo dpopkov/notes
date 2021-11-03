@@ -221,7 +221,7 @@ or shorter (syntax for one line functions):
 const evenNumbers = numbers.filter(num => num % 2 === 0);
 ```
 
-## 60 String templates (3m)
+## 60 String templates (3m) - referencing objects in string
 
 Using ***backticks*** for string templates:
 
@@ -233,7 +233,9 @@ toString(): string {
 
 ## 61 Some hints for debugging classes (3m) (about method toString and console.log)
 
-When using concatenation with strings or string template then method *toString()* is called:
+Before calling method *toString()* the output in the console of an object Book contains the full Book object which allows to look at each of the properties of this book.
+
+When using *concatenation* with strings or *string template* then it no longer gives us the object itself but the method *toString()* is called:
 
 ```tsx
 const myBook = new Book('James', 'Effective Something');
@@ -245,15 +247,15 @@ console.log('myBook = ', myBook);  // method toString is not called here
 
 So using `console.log(’some text’, objectToView);` can be **more useful** for debugging.
 
-If string concatenation is used, but *toString()* is not defined, then console prints *[object Object]* text with no information at all about the object. 
+If string *concatenation* is used, but method *toString()* is not defined, then console prints “*[object Object]”* text with no information at all about the object. The solution is to move to the comma separated arguments of method *log(...)* instead of concatenation.
 
 ## 62 Angular 10 changes
 
 In the next video we show the difference between == and ===, and we use the example of comparing a string with a number (that is the difference between ‘1’==1 and ‘1’===1). In the latest version of Angular these won’t compile any more. Angular has made a change to the compiler's rules to avoid you making this “mistake” of trying to compare two different object types.
 
-## 63 Object equality (5m)
+## 63 Object equality (5m) - abstract and strict
 
-`==` Abstract equality, trying to cast object to the same variable type
+`==` Abstract equality , trying to cast object to the same variable type, before comparison
 
 `===` Strict equality, it means *value equality*, there is no real concept of *reference equality* in JavaScript
 
@@ -261,13 +263,14 @@ In the next video we show the difference between == and ===, and we use the exam
 
 `!==`
 
+Generally we’ll want to use the triple equals (`===`) to get sensible responses to “is one thing equal to another?” question. There’s one exception to this, and that is where we are doing a *null* check.
+
 ```tsx
+// Remember: **undefined** means that the variable has never been initialized.
 let myValue: number; // not initialized variable
-// @ts-ignore
 console.log('myValue === null :' ,myValue === null);            // false
-// @ts-ignore
 console.log('myValue === undefined :', myValue === undefined);  // true
-// @ts-ignore
+// For safety checks we can use double equals (==)
 console.log('myValue == null :' ,myValue == null);              // true
 ```
 
@@ -291,7 +294,17 @@ console.log(SubjectArea[1]);       // HISTORY
 ## 65 Looping through an enum (5m)
 
 ```tsx
-const enumArray = Object.keys(SubjectArea);
+for (const value of SubjectArea) {  // This code will not compile !!!
+  console.log(value);
+}
+for (const value in SubjectArea) {  // You get labels **and** values
+  console.log(value);
+}
+```
+
+```tsx
+const enumArray = Object.keys(SubjectArea); // converts enum to Array
+// Get 2nd half of the array. The result will contain labels only.
 const enumValuesArray = enumArray.slice(enumArray.length / 2);
 for (const value of enumValuesArray) {
   console.log(value);
@@ -338,11 +351,12 @@ for (const value in CustomSubjectArea) {
   console.log(value);  // prints labels of enum
 }
 // Or to print labels and custom values:
-for (const label in CustomSubjectArea) {
-  // @ts-ignore
+for (const label in CustomSubjectArea) 
   console.log('label:', label, 
 							', custom value:', CustomSubjectArea[label]);
 }
+// To get labels without custom values
+const enumLabels = Object.keys(CustomSubjectArea); // Array of labels
 ```
 
 ## 68 Retrieving a label from its value (5m)
@@ -352,7 +366,6 @@ Simple and more understandable way:
 ```tsx
 let targetLabel;
 for (const label in CustomSubjectArea) {
-  // @ts-ignore
   if (CustomSubjectArea[label] === 'Science and Maths') {
     targetLabel = label;
   }
@@ -364,7 +377,6 @@ More concise way:
 
 ```tsx
 const targetValue = 'Science and Maths';
-// @ts-ignore
 const targetLabel = Object.keys(CustomSubjectArea)
 										.find(it => CustomSubjectArea[it] === targetValue);
 console.log('Found target label:', targetLabel);
@@ -376,7 +388,7 @@ console.log('Found target label:', targetLabel);
 
 We’ve seen two types of class in Angular. We have component classes, that’s the code files that act as backing classes to the HTML, and classes that we have created to hold data, classes that represent our model. The component classes are instantiated automatically by Angular when a component comes into view. The custom classes that we’ve created work very much like a Java class in that we can create one or more instances of those classes and each instance will have its own attributes.
 
-However sometimes people want to have a single instance of a class within our project that can be accessed by any component. This will give us a way of sharing data between the components and it can also allow us to provide some kind of useful shared functionality, maybe some utility functions, for example. This idea of a shared class in Angular is called a *service*. It’s really just any class that we can create but with one added feature, and that is that it can be instantiated once automatically and then injected into any of the classes in our application using Dependency Injection. We’re going to let Angular instantiate it and make the single instance it creates available for us to use anywhere that we want to use it.
+However sometimes people want to have a single instance of a class within our project that can be accessed by any component. This will give us a way of sharing data between the components and it can also allow us to provide some kind of useful shared functionality, maybe some utility functions, for example. This idea of a shared class in Angular is called a ***service***. It’s really just any class that we can create but with one added feature, and that is that it can be instantiated once automatically and then *injected* into any of the classes in our application using *Dependency Injection*. We’re going to let Angular instantiate it and make the single instance it creates available for us to use anywhere that we want to use it.
 
 ## 70 Creating a Service (7m)
 
@@ -393,11 +405,13 @@ export class DataService {
 
 The @Injectable decorator means that this class can be instantiated and injected into other classes within the application. It’s what allows us to use Dependency Injection. The line `providedIn: 'root'` means that this class is going to be available throughout the entirety of our application, from the root of our application and anywhere below it. You could potentially change this to restrict where this class can be used, but that would be an advanced feature that is not going to be covered in this tutorial.
 
-Angular does not need to modify *app.module.ts* file in order the add the newly generated service into it. The only thing that is needed for a service is the file itself with the @Injectable decorator.
+When we created a component, Angular needed to create some entries for us about this component in the app.module.ts file. It had to create entries in the *declarations* section, but it doesn’t need to do that for services. The only thing that is needed for a service is the file itself with the @Injectable decorator.
 
 We’re going to use the Service as book’s storage now:
 
 ```tsx
+books: Array<Book>
+
 constructor() {
   this.books = new Array<Book>();
   const book1 = new Book();
@@ -481,6 +495,8 @@ export class Page3Component implements OnInit {
 }
 ```
 
+page3.component.html:
+
 ```html
 <button (click)="removeLastBook()">
 	Delete the last book in the list
@@ -491,7 +507,9 @@ export class Page3Component implements OnInit {
 
 ## 75 The need for the Observer Design Pattern (10m)
 
-As a general rule you should not be referencing services within the HTML. What is always better is to create a local variable within the Typescript file for the component and to reference that. The target of what we should be doing here is within the class file for our page one component.
+In the last chapter we created a data service which contains an array of books as a way of sharing data amongst the components withing our application. But we pointed out that what we’ve built is definitely not best practice.
+
+As a general rule you should not be referencing services within the HTML. What is always better is to create a local variable within the Typescript file for the component and to reference that. The target of what we should be doing here is within the class file for our page1 component.
 
 If we create a variable that holds number of books:
 
@@ -510,6 +528,8 @@ This Design Pattern is used extensively within the internals of Angular. There a
 We’ll define an object which is going to be of type *Observable*. An Observable object is a special object type which can send out notifications that we’ll call events. And we can write code that will trigger these events. We’ll then create some further objects which are going to observe these *Observable* objects. We’ll call those the *Observers*. And the Observers will subscribe to receive the notification of the events when they occur. So using this idea, when something changes, our *Observable* can notify the *Observers* that an event has occurred, that some data has changed and the *Observers* can do something about it.
 
 Let’s start by creating an *Observable* variable in the data service. The actual object type that we use in Angular to create an observable is called an *EventEmitter*.
+
+data.service.ts:
 
 ```tsx
 bookAddedEvent = new EventEmitter();
@@ -569,7 +589,7 @@ this.dataService.bookAddedEvent.subscribe(
 
 To help give this some context, we will be using this Design Pattern when we call a REST web service. Suppose we’re calling a service on a remote server to get some data but the back-end doesn’t respond. May be the server is down. In that instance, we won’t get an event occur to say “here’s the data you’re looking for”, we’ll get an error.
 
-So to simulate this as well as firing the event, let’s put in a call to trigger the error. We’ll say that books by author called “James” are not allowed:
+So to simulate this as well as firing the event, let’s put in the DataService a call to trigger the error. We’ll say that books by author called “James” are not allowed:
 
 ```tsx
 addBook(book: Book) {
@@ -604,7 +624,7 @@ this.dataService.bookAddedEvent.subscribe(
 
 ## 79 Unsubscribing an Observer (3m)
 
-You should generally be unsubscribing your observers when you’re finished with them. There are some instances where this doesn’t apply and we’re going to see those in third and fourth modules of this course. But if you’re creating your own event emitters like we are doing here then you should definitely always unsubscribe. The risk of not unsubscribing is that you can potentially create a memory leak. The obvious place to unsubscribe is when we have finished with our component. We’re creating the subscription when our component is initialized in the *ngOnInit* method so we should unsubscribe when our component is destroyed. There is a method that we can hook into that will run when our component is destroyed and that is called *ngOnDestroy*. To be able to use the destroy method we also have to implement the *OnDestroy* interface. We create a variable *subscription* and use it to unsubscribe:
+You should generally be unsubscribing your observers when you’re finished with them. There are some instances where this doesn’t apply and we’re going to see those in third and fourth modules of this course. But if you’re creating your own event emitters like we are doing here then you should definitely always unsubscribe. The risk of not unsubscribing is that you can potentially create a memory leak. The obvious place to unsubscribe is when we have finished with our component. We’re creating the subscription when our component is initialized in the *ngOnInit* method so we should unsubscribe when our component is destroyed. There is a method that we can hook into that will run when our component is destroyed and that is called *ngOnDestroy*. To be able to use the destroy method we also have to implement the *OnDestroy* interface. We create a variable *subscription* at the class level, it’s of type Subscription. Then when we set up our subscribe we set up our subscription object equal to the result of that subscribe, which means now we can reference it in OnDestroy and call the *unsubscribe()* method:
 
 ```tsx
 subscription: Subscription;
@@ -624,15 +644,15 @@ That tidies everything up.
 
 ## 80 Exercise 2 - Observer Design Pattern (2m)
 
-Right now the code wok when we add a book, we’re updating the number books. But it’s not working yet when we delete a book. As the exercise we’d like you to try and fix that problem, to make the delete a book method also use an event emitter to ensure that the values get updated correctly.
+Right now the code works when we add a book, we’re updating the number books. But it’s not working yet when we delete a book. As the exercise we’d like you to try and fix that problem, to make the delete a book method also use an event emitter to ensure that the values get updated correctly.
 
 In the DataService:
 
 - Create a deletedBookEvent
 - Create a method to remove the last book
-- Call the method from the page 3 component. Throw an error if there are no books to delete
-- Subscribe to the deletedBookEvent in page 1
-- Subscribe to the event and to errors in the page 3 component. After we clicked on “Delete” button we can find out whether or not that was successful, and we can use an alert to display to the user whether or not the delete worked.
+- Call the method from the page3 component. Throw an error if there are no books to delete
+- Subscribe to the deletedBookEvent in page1 component
+- Subscribe to the event and to errors in the page3 component. After we clicked on “Delete” button we can find out whether or not that was successful, and we can use an alert to display to the user whether or not the delete worked.
 
 ## 81 Exercise 2 - solution walkthrough (7m)
 
@@ -683,7 +703,7 @@ Toggle Line Breakpoint: Ctrl + F8.
 
 Create debug configuration: Run → Debug... →Edit configurations, then click “+” and choose “JavaScript Debug” option. This will create a default configuration. Then choose the Browser (Chrome) and then insert the URL which our debugger should go to (http://localhost:4200/).
 
-When we call “Debug” (ng serve should be running already) that will open new browser window and open up debug console in IDE. We can change values of the variables either in the console or in the IDEs list of variables.
+When we call “Debug” (*ng serve* should be running already) that will open new browser window and open up debug console in IDE. We can change values of the variables either in the console (`> book.author = ‘james’`) or in the IDEs list of variables.
 
 # Chapter 17 - Unit Testing (45m)
 
