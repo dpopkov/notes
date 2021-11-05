@@ -177,6 +177,124 @@ navigateToUsersAdmin(): void {
 }
 ```
 
-101 Using a separate routing file
+## 101 Using a separate routing file (5m)
+
+There is a warning in our IDE on this *navigate* command: `this.router.navigate(['admin', 'rooms']);` - “promise returned from the navigate is ignored”. We’re going to learn what *promise* is in the next module. This is one warning that can safely be ignored. TS Lint is saying that we may have made an error. This is one instance where when we use *navigate* we’ve done everything just right, there is no error here at all and we can safely ignore it.
+
+The structure we’ve built up then contains the routing rules for the app module. And what we’ve built is absolutely fine, it’s production standard, but it’s possible that you’ll have a large number of routes for your application and you might find it easier to put these into a separate file. Just so that the app module file doesn’t become overly long. From a performance point of view there’s no reason to do that, it’s simply you choice to make your code slightly easier to maintain. 
+
+However if you let Angular create the routing structure for you when you generate a new project (we get that option when we create an Angular project) then it does actually create the routing rules in a separate file for you. Actually the correct terminology is it creates them in a separate module, but we don’t really want to get into the detail of what a module is just yet.
+
+We’re not going to change the structure of our application. If you want to view the alternative structure that is created for routing in a separate module you can choose that option when creating a new Angular project. It will contain an additional class *AppRoutingModule* where you can add routing rules for your project.
 
 # Chapter 20 - Models and Views (53m)
+
+## 102 The concepts of Data, Model and Views (4m)
+
+In this chapter we’re going to take the project forward by implementing in Angular the room and user views.
+
+Angular applications don’t have persistent data storage by themselves. If we want to store the data so that we can view it again later, or so that other users can see it, then we will need to connect so some kind of backend. When we run an Angular app that has just local data storage, simply refreshing the browser will remove any data that we might’ve created out of memory. Refreshing causes the app to be reloaded from the server. However, developing Angular applications in this stand alone way first is certainly easier, but is also gives us the advantage that we can develop the code without having to worry about the backend being available. We can also continue to maintain our code in the future without needing to worry about the back end being present. The goal here is that when we have finished by the end of module 4, we’ll provide our application with the options of both a local temporary data storage and a proper backend. When we then run the application, we’ll state at one time which version it is to use. So we can choose to run the site in local or disconnected mode for development purposes or in connected mode when we deploy the application in production. We sill see how to do this later on in the course, but for now, we’re just going to concentrate on the local data storage idea.
+
+The steps we’ll be doing in this chapter:
+
+- Create the Model - the class definitions of the objects our application needs
+- Create a local DataService - it will be replaced later on with the REST service
+- Create the Room and User views
+
+## 103 Creating a model (5m)
+
+Let’s create Room model - the definition for a room object. We’ll put models in a separate folder - *model*. We’ll create classes for Room without CLI, we’ll do it ourselves.
+
+```tsx
+export class Room {
+  id: number;
+  name: string;
+  location: string;
+  capacities: Array<LayoutCapacity>;
+}
+
+export class LayoutCapacity {
+  layout: Layout;
+  capacity: number
+}
+
+export enum Layout {
+  THEATER = 'Theater',
+  USHAPE = 'U-Shape',
+  BOARD = 'Board Meeting'
+}
+```
+
+## 104 Creating a data service (7m)
+
+We’ll use the CLI to generate a data service: `ng g s Data` - will generate class *DataService*. 
+
+```tsx
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+
+  rooms: Array<Room> = new Array<Room>();
+
+  constructor() {
+    const capacity1 = new LayoutCapacity(Layout.THEATER, 50);
+    const capacity2 = new LayoutCapacity(Layout.USHAPE, 20);
+    const capacity3 = new LayoutCapacity(Layout.THEATER, 60);
+
+    const room1 = new Room(1, 'First Room', 'First Floor');
+    room1.addLayoutCapacity(capacity1);
+    room1.addLayoutCapacity(capacity2);
+
+    const room2 = new Room(2, 'Second Room', 'Third Floor');
+    room2.addLayoutCapacity(capacity3);
+
+    this.rooms.push(room1);
+    this.rooms.push(room2);
+  }
+}
+```
+
+We’ve added constructors and convenience method to model classes.
+
+## 105 Binding data to a view and looping with *ngFor (6m)
+
+Looping with *ngFor:
+
+```html
+<div *ngFor=”let variable of collection”>
+...
+</div>
+```
+
+rooms.component.ts:
+
+```tsx
+rooms: Array<Room>;
+
+constructor(private dataService: DataService) { }
+
+ngOnInit(): void {
+  this.rooms = this.dataService.rooms;
+}
+```
+
+in rooms.component.html:
+
+```html
+<tr *ngFor = "let room of rooms">
+  <td>{{ room.id }}</td>
+  <td>{{ room.name }}</td>
+  <td>
+    <button type="button" class="btn btn-primary">view</button>
+  </td>
+</tr>
+```
+
+106 Creating a sub-component view (9m)
+
+107 Using routing for sub-components (11m)
+
+108 Exercise 2 - Creating models, data and views (2m)
+
+109 Exercise 2 - solutio walkthrough (9m)
