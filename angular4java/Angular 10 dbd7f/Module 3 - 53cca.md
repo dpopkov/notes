@@ -189,112 +189,199 @@ We’re not going to change the structure of our application. If you want to vie
 
 # Chapter 20 - Models and Views (53m)
 
-## 102 The concepts of Data, Model and Views (4m)
+# Chapter 21 - Using Observables for data (8m)
 
-In this chapter we’re going to take the project forward by implementing in Angular the room and user views.
+## 110 Why we should use observables with data
 
-Angular applications don’t have persistent data storage by themselves. If we want to store the data so that we can view it again later, or so that other users can see it, then we will need to connect so some kind of backend. When we run an Angular app that has just local data storage, simply refreshing the browser will remove any data that we might’ve created out of memory. Refreshing causes the app to be reloaded from the server. However, developing Angular applications in this stand alone way first is certainly easier, but is also gives us the advantage that we can develop the code without having to worry about the backend being available. We can also continue to maintain our code in the future without needing to worry about the back end being present. The goal here is that when we have finished by the end of module 4, we’ll provide our application with the options of both a local temporary data storage and a proper backend. When we then run the application, we’ll state at one time which version it is to use. So we can choose to run the site in local or disconnected mode for development purposes or in connected mode when we deploy the application in production. We sill see how to do this later on in the course, but for now, we’re just going to concentrate on the local data storage idea.
+In the last chapter we built a local data service which stores information about our rooms and users. Later on we’re going to be creating the ability to swap this version out with a new version that will connect to a REST backend. Before we’re going any further we want to change the way that the data service works. The reason for this is as follows. When we later on connect to the backend, we’ll getting the data using REST. The idea is that we’re going to replicate the local data service with a 2nd version that uses REST to get the data. And that will have some significant differences to what we’ve done so far.
 
-The steps we’ll be doing in this chapter:
+The REST version of our data service is not going to be able to have the publicly available arrays of data. If we want to be able to get a list of rooms, we’re going to be making a call to some backend server, so the REST data version is going to need some kind of getRooms method.
 
-- Create the Model - the class definitions of the objects our application needs
-- Create a local DataService - it will be replaced later on with the REST service
-- Create the Room and User views
+The first thing we’ll do is make these 2 arrays (rooms and users) `private` and create getter methods to return them: `getRooms(): Array<Room>` and `getUsers(): Array<User>`. Then we need to change some code that uses the arrays.
 
-## 103 Creating a model (5m)
+That is the first step. But there is still a little bit to do. When we call the *getRooms()* on the local data service the method can return the data we need instantly. However when we call the equivalent method in the REST version of this class, that we’ll be creating later on, the method is going to have to connect to some backend server to get the data, so that means it’s not going to be instant. And of course the backend might not respond. We’ll learn properly how to deal with that case, when the server doesn’t respond, in the next module. But for now it’s enough to know that REST calls in Angular work by using the Observer Design Pattern.
 
-Let’s create Room model - the definition for a room object. We’ll put models in a separate folder - *model*. We’ll create classes for Room without CLI, we’ll do it ourselves.
+When we come to work with REST we’ll issue the call the get the list of rooms and rather than receiving back an array of rooms we’ll get something we can subscribe to, and the data, the actual rooms, will be filled in or provided later on. When the data arrives, it’s an event, that we can respond to. So the methods that we’ve just created that can be return an array of rooms or an array of users, when we create the REST version, they’re not going to be returning an array, but rather something we can subscribe to, which will later on give us the array.
+
+So before we start creating lots more methods in this local data service, we think it’s worth switching these two methods, the *getRooms()* and *getUsers()* , to this alternative design pattern. That is to make our local data service return something we can subscribe to. We are going to provide a mark implementation for the REST data service. We’re going to pretend that it might take some time to get the data that we need and that we’ll be providing that data after a few seconds. Actually that’s not quite what we’ll do, we weren’t supposed to delaying, but the idea is certainly that we’re mocking a REST call.
+
+So the method signature is not going to return an array of rooms but it’s going to return an observable of an array of rooms.
+
+in data.service.ts:
 
 ```tsx
-export class Room {
-  id: number;
-  name: string;
-  location: string;
-  capacities: Array<LayoutCapacity>;
+private rooms: Array<Room> = new Array<Room>();
+private users: Array<User> = new Array<User>();
+
+getRooms(): Observable<Array<Room>> {
+  return of(this.rooms);
 }
 
-export class LayoutCapacity {
-  layout: Layout;
-  capacity: number
-}
-
-export enum Layout {
-  THEATER = 'Theater',
-  USHAPE = 'U-Shape',
-  BOARD = 'Board Meeting'
+getUsers(): Observable<Array<User>> {
+  return of(this.users);
 }
 ```
 
-## 104 Creating a data service (7m)
-
-We’ll use the CLI to generate a data service: `ng g s Data` - will generate class *DataService*. 
+in rooms.component.ts:
 
 ```tsx
-@Injectable({
-  providedIn: 'root'
-})
-export class DataService {
+ngOnInit(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+    }
+  )
+  // ...
+}
+```
 
-  rooms: Array<Room> = new Array<Room>();
+in users.component.ts:
 
-  constructor() {
-    const capacity1 = new LayoutCapacity(Layout.THEATER, 50);
-    const capacity2 = new LayoutCapacity(Layout.USHAPE, 20);
-    const capacity3 = new LayoutCapacity(Layout.THEATER, 60);
+```tsx
+ngOnInit(): void {
+  this.dataService.getUsers().subscribe(
+    (next) => {
+      this.users = next;
+    }
+  )
+  // ...
+}
+```
 
-    const room1 = new Room(1, 'First Room', 'First Floor');
-    room1.addLayoutCapacity(capacity1);
-    room1.addLayoutCapacity(capacity2);
+# Chapter 22 - Template forms (39m)
 
-    const room2 = new Room(2, 'Second Room', 'Third Floor');
-    room2.addLayoutCapacity(capacity3);
+## 111 How template driven forms work (1m)
 
-    this.rooms.push(room1);
-    this.rooms.push(room2);
+So far everything we have done with Angular has been *read-only*. In this chapter we’re going to start learning how to create forms to allow users to input data. There are two different ways to do forms in Angular called *template driven* and *reactive*. Template driven is easier of the two, so we’ll focus on this method in this chapter and we’ll look at the alternative reactive forms in a couple of chapters time.
+
+The concept behind how template drive forms work is relatively straightforward. We’ll use HTML elements, such as *input* and in the backing TypeScript file we’ll create variables that we will bind to these elements. So as the value in the *input* changes, the variable in the backing file will be automatically updated. We don’t actually submit a form to a server, but instead we’ll have the equivalent of a submit button which will be bound to a method in the TypeScript file that can read these variables to get the form’s values
+
+## 112 Setting up navigation to show a form (9m)
+
+Let’s create a form for User editing. In Spring the form loads as a separate page, but in the Angular version it would be nicer if we made the edit form appear replacing the view for a particular user details.
+
+The first step is to create a component for editing users: `ng g c admin/users/UserEdit`
+
+We will make the form appear in a production standard way. Right now we’re using the URL with a query parameter (`?id=2`) to determine which user to show. It would be sensible if we upgrade this to say as well as the query parameter `id` we’ll add in a second parameter which we’ll call *action* and we can set it equal to either *view* or *edit* if we want to edit user (`?id=1&action=edit`). We’re going to upgrade the application to work with 2 parameters, not just one.
+
+user-edit.component.ts:
+
+```tsx
+export class UserEditComponent implements OnInit {
+  @Input()
+  user: User;
+
+  ngOnInit(): void {
   }
 }
 ```
 
-We’ve added constructors and convenience method to model classes.
-
-## 105 Binding data to a view and looping with *ngFor (6m)
-
-Looping with *ngFor:
+user-edit.component.html:
 
 ```html
-<div *ngFor=”let variable of collection”>
-...
-</div>
+<p>user-edit works! The user we're editing is {{ user.name }}</p>
 ```
 
-rooms.component.ts:
+users.component.ts:
 
 ```tsx
-rooms: Array<Room>;
+action: string;
 
-constructor(private dataService: DataService) { }
+constructor(private dataService: DataService,
+              private route: ActivatedRoute,
+              private router: Router) { }
 
 ngOnInit(): void {
-  this.rooms = this.dataService.rooms;
+  // ..
+  this.route.queryParams.subscribe(
+    (params) => {
+      const idString = params['id'];
+      const action = params['action'];
+      if (idString) {
+        const idNumber = +idString;
+        this.selectedUser = this.users.find(user => user.id === idNumber);
+        if (action) {
+          this.action = action;
+        }
+      }
+    }
+  )
+}
+
+setSelectedUser(userId: number): void {
+  this.router.navigate(['admin', 'users'], 
+												{queryParams: {id: userId, action: 'view'}});
 }
 ```
 
-in rooms.component.html:
+users.component.html:
 
 ```html
-<tr *ngFor = "let room of rooms">
-  <td>{{ room.id }}</td>
-  <td>{{ room.name }}</td>
-  <td>
-    <button type="button" class="btn btn-primary">view</button>
-  </td>
-</tr>
+<div class="col-6">
+  <app-user-detail *ngIf="action === 'view'" [user]="selectedUser">
+	</app-user-detail>
+  <app-user-edit *ngIf="action === 'edit'" [user]="selectedUser">
+	</app-user-edit>
+</div>
 ```
 
-106 Creating a sub-component view (9m)
+user-detail.component.ts:
 
-107 Using routing for sub-components (11m)
+```tsx
+constructor(private router: Router) { }
 
-108 Exercise 2 - Creating models, data and views (2m)
+editUser(): void {
+  this.router.navigate(['admin', 'users'], 
+									{queryParams: {id: this.user.id, action: 'edit'}});
+}
+```
 
-109 Exercise 2 - solutio walkthrough (9m)
+in user-detail.component.html:
+
+```html
+<a class="btn btn-small btn-warning"
+   (click)="editUser()"
+>edit</a>
+```
+
+## 113 Creating a form (5m)
+
+in user-editcomponent.ts:
+
+```tsx
+message: string;
+```
+
+user-editcomponent.html:
+
+```html
+<h1>{{ user.id == null ? 'Add' : 'Edit'}} User</h1>
+<div class="bg-warning p-5" *ngIf="message">{{ message }}</div>
+<form action="some-url-goes-here" method="post">
+<div class="form-group">
+  <label for="name">Name</label>
+  <input type="text" class="form-control" id="name" 
+				 placeholder="user name">
+  <div class="alert alert-danger">error message placeholder</div>
+</div>
+<div class="form-group" *ngIf="user.id == null">
+  <label for="password">Password</label>
+  <input type="password" class="form-control" id="password" 
+				 placeholder="password">
+  <div class="alert alert-danger">error message placeholder</div>
+</div>
+<button type="submit" class="btn btn-primary">Save</button>
+</form>
+```
+
+## 114 Binding a form (10m)
+
+The first thing to note here is that unlike if we were doing this in JSP or Thymeleaf we don’t have to worry about exactly replicating an object that we’re going to bind this form to. What we mean by that is that we don’t have a reference on the form to the ID and that’s absolutely find. If we were working in JSP or Thymeleaf we would probably have to put in a hidden ID field somewhere in the form so that when the form is sent back to the server there is enough data there for the server to be able to interpret it. This form is going to be interpreted in JavaScript running on the browser so the ID can be held in memory, we don’t need it on the form. So forms can be a lot more straightforward and simple in Angular. This form has 2 fields although one of them can be invisible.
+
+The next thing to note we’re not sending this form to a server. Instead we’re going to create a method, that will run when the form is processed, when we click on the Save button.
+
+We need to change some of the forms attributes. Right now the form has an *action* attribute with a placeholder for URL. We’ll remove that action. Instead we’ll run some code when the Save button is clicked.
+
+115 Saving the form data (5m)
+
+116 Finishing the form (9m)
