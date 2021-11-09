@@ -830,7 +830,7 @@ onSubmit(): void {
 }
 ```
 
-## 116 Finishing the form (9m)
+## 116 Finishing the form (9m) - implement Add User
 
 To finish this form we’d like to deal with the *add* button. We’ll have another action that could appear in the URL. As well as *view* and *edit* we’ll have the **add** action. Let’s start by adding a click event to our *add* button. We’ll create a method in users component *addUser()* and then we can bind the click event to this method.
 
