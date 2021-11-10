@@ -302,7 +302,7 @@ In the rooms.component.html we’ll start with *add* button. Then we add *app-ro
 
 That’s navigation all set up.
 
-## 124 Creating a reactive form (10m)
+## 123 Creating a reactive form (10m)
 
 To build this form we use prepared HTML for this chapter.
 
@@ -442,6 +442,247 @@ onSubmit() {
 
 We also add attribute *required* to both input elements.
 
-## 125 Setting and reading form control values (4m)
+## 124 Setting and reading form control values (4m)
 
-## 125 Programmatically adding controls (11m)
+Right now we’ve bound our HTML to the FormGroup object, but we don’t yet have any of the data from our room appearing in the form. You can probably guess that what we’ll need to do is to place the data from the room into thee controls when the form loads and then in onSubmit method, we’ll read the data out of the form and put it back into our room object. So how do we get the data into the form? You can probably guess we’ll do something in ngOnInit method. The FormGroupObject has a method called *patchValue()* which allows us to take each of the labels and provide a value for each label. And now when we load up the form we’ll see the values from our room appearing in that form.
+
+### in room-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.roomForm.patchValue(
+    {
+      roomName: this.room.name,
+      roomLocation: this.room.location
+    }
+  );
+}
+```
+
+Unlike in the template forms way of working with forms, we don’t have the problem here of needing to create a copy of our room object. The form is completely disconnected from it. When we come to save the form we’ll need to extract the values form the FormGroup at that point. We do that in the *onSumbit()* method
+
+### in room-edit.component.ts
+
+```tsx
+onSubmit() {
+  this.room.name = this.roomForm.controls['roomName'].value;
+	// other way
+  this.room.location = this.roomForm.value['roomLocation']; 
+  console.log('updated room:', this.room);
+}
+```
+
+Now we’re ready to save this room object. You’ll notice hat because of the way our application works, the room is being automatically updated in the backend. But we’ll ignore that and do it properly. What we really want to do here is to call some method in the data service to save the room at this point. We’re going to come back and do that in a little while.
+
+## 126 Programmatically adding controls (11m)
+
+Let’s now talk about the reason why we have had to switch to the active forms. And that is that we don’t know at design time how many layout options there are going to be. So we want to build up a set of values in the corresponding section of the page. It’s going to be a set of labels and inputs, one for each of the different layout types as defined in the enum, but at coding time we don’t know how many there are going to be, because that could change at some point in the future. We’re going to create some kind of loop to generate these controls. Let’s start building this and we’ll see what it looks like.
+
+The first thing we’ll need to get is a list of the different layouts. Remember that in the model the layouts are an enum and they have keys and values. You might remember that we should be able to get an array of the keys by doing `layouts = Object.keys(Layout);`. 
+
+### in room-edit.component.ts
+
+```tsx
+layouts = Object.keys(Layout);
+```
+
+That will allow us to create a repeating div in the HTML.
+
+### in room-edit.component.html
+
+```html
+<div class="form-group" *ngFor="let layoutKey of layoutKeys">
+  <label>{{layoutMap.get(layoutKey)}}</label>
+  <input type="number" class="form-control">
+</div>
+```
+
+The next thing we’ll want to do is make sure that each of these inputs have a unique ID. We’ll give them an ID, which will be the word ‘layout’ followed by the layout option. And we add formControlName as well
+
+### in room-edit.component.html
+
+```html
+<div class="form-group" *ngFor="let layoutKey of layoutKeys">
+    <label for="layout{{layoutKey}}"
+		>{{layoutMap.get(layoutKey)}}</label>
+    <input type="number" class="form-control" 
+			id="layout{{layoutKey}}" formControlName="layout{{layoutKey}}">
+  </div>
+```
+
+That is the HTML part of the form setup. Next we want to create the same matching fields in the backing TypeScript file so that we can link the two together.
+
+To do that what we’ll want to do is dynamically add in some extra controls into the controls array of our FormGroup called roomForm. We can do that in ngOnInit method.
+
+### in room-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.roomForm.patchValue(
+    {
+      roomName: this.room.name,
+      roomLocation: this.room.location
+    }
+  );
+  for (const layoutKey of this.layoutKeys) {
+    let label = `layout${layoutKey}`;
+    this.roomForm.addControl(label, new FormControl(label));
+  }
+}
+```
+
+To finish this chapter we just go the the onSubmit method and we can extract now the values from these new form controls that we’ve added and add those into the room object.
+
+### in room-edit.component.ts
+
+```tsx
+onSubmit() {
+  this.room.name = this.roomForm.controls['roomName'].value;
+	 // other way
+  this.room.location = this.roomForm.value['roomLocation'];
+  this.room.capacities = new Array<LayoutCapacity>();
+  for (const layoutKey of this.layoutKeys) {
+    const layoutCapacity = new LayoutCapacity();
+    layoutCapacity.layout = Layout[layoutKey];
+    const label = `layout${layoutKey}`;
+    layoutCapacity.capacity = this.roomForm.controls[label].value;
+    this.room.capacities.push(layoutCapacity);
+  }
+  console.log('updated room:', this.room);
+  // todo: call a method in the data service to save the room
+}
+```
+
+# Chapter 25 - Going further with Reactive Forms (21m)
+
+## 126 Using the FormBuilder (7m)
+
+In the last chapter we created a form dynamically. That is we created a form group with some form controls and then we wrote some code to add extra controls into that form group. Before we start adding in new functionality, we can simplify what we’ve already written. Angular gives us a way to make it a bit less code to type by using an object called a FormBuilder. The starting point is to inject a FormBuilder into our class. And then we’ll build the form in the ngOnInit method.
+
+### in room-edit.component.ts
+
+```tsx
+roomForm: FormGroup;
+constructor(private formBuilder: FormBuilder) {
+	// ...
+}
+
+ngOnInit(): void {
+  this.roomForm = this.formBuilder.group(
+      {
+        roomName: this.room.name,
+        roomLocation: this.room.location
+      }
+  )
+  for (const layoutKey of this.layoutKeys) {
+    const layoutCapacity = this.room.capacities
+							.find(lc => lc.layout === Layout[layoutKey]);
+    const initialCapacity = layoutCapacity == null ? 0 
+														: layoutCapacity.capacity;
+    const label = `layout${layoutKey}`;
+    this.roomForm.addControl(label, 
+													this.formBuilder.control(initialCapacity));
+  }
+}
+```
+
+## 127 Implementing validators (3m)
+
+Next, let’s have a look at validation. We’d want to have similar to what we had in the user’s validation, that the room name and the location cannot be blank and must be filled in. It turns out for user reactive forms adding in validation rules is really simple. Angular gives us an object type called a Validator and there are quite a few built-in validators which we can use.
+
+### in room-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.roomForm = this.formBuilder.group(
+      {
+        roomName: [this.room.name, **Validators.required**],
+        roomLocation: [this.room.location, 
+											**[Validators.required, Validators.minLength(2)]**]
+      }
+  )
+  // ...
+}
+```
+
+## 128 Validation messages and controlling the submit button (11m)
+
+The things we’ll need to do to finish this off are to display some validation errors on the room name and location fields, if appropriate. We’ll want to prevent the *save* button being clicked if there are validation errors. And we’ll also want to implement the save function by calling a method in the data service.
+
+Let’s start by completing the room edit component.
+
+### in room-edit.component.html
+
+```html
+<div class="form-group">
+  ...
+  <div class="alert alert-danger"
+       *ngIf="roomForm.controls['roomName'].invalid && roomForm.controls['roomName'].dirty"
+  >Room name cannot be blank</div>
+</div>
+<div class="form-group">
+  ...
+  <div class="alert alert-danger"
+       *ngIf="roomForm.controls['roomLocation'].invalid && roomForm.controls['roomLocation'].dirty"
+  >Room location cannot be blank</div>
+</div>
+...
+<button type="button" class="btn btn-primary" (click)="onSubmit()"
+        [disabled]="roomForm.invalid"
+>Save</button>
+```
+
+And the final step is going to be saving the changes back into the data service.
+
+### in data.service.ts
+
+```tsx
+updateRoom(room: Room): Observable<Room> {
+  const originalRoom = this.rooms.find(r => r.id === room.id);
+  if (originalRoom) {
+    originalRoom.name = room.name;
+    originalRoom.location = room.location;
+    originalRoom.capacities = room.capacities;
+  }
+  return of(originalRoom);
+}
+
+addRoom(newRoom: Room): Observable<Room> {
+  let maxId = 0;
+  for (const r of this.rooms) {
+    if (r.id > maxId) {
+      maxId = r.id;
+    }
+  }
+  newRoom.id = maxId + 1;
+  this.rooms.push(newRoom);
+  return of(newRoom);
+}
+```
+
+Now let’s deal with the *onSubmit()* method.
+
+### in room-edit.component.ts
+
+```tsx
+onSubmit() {
+  //...
+  if (this.room.isNew()) {
+    this.dataService.addRoom(this.room).subscribe(
+      next => {
+        this.navigateToView(next);
+      }
+    );
+  } else {
+    this.dataService.updateRoom(this.room).subscribe(
+      next => {
+        this.navigateToView(next);
+      }
+    );
+  }
+}
+private navigateToView(next: Room) {
+  this.router.navigate(['admin', 'rooms'], 
+											{queryParams: {action: 'view', id: next.id}});
+}
+```
