@@ -686,3 +686,74 @@ private navigateToView(next: Room) {
 											{queryParams: {action: 'view', id: next.id}});
 }
 ```
+
+# Chapter 26 - Completing the case study (1h15m)
+
+## 129 Fixing a lifecycle bug
+
+There is a small bug in the rooms and users functionality which we want to fix. This bug is quite typical of the kind of thing that can happen when we develop an Angular application.
+
+If we are editing an existing user or room but I then choose to go and add a new user we get to the add user screen but the name of the user that we are editing has been left behind in the name input field.
+
+We’ll create FormResetService to fix this issue: `ng g s FormReset`.
+
+### form-reset.service.ts
+
+```tsx
+export class FormResetService {
+  resetRoomFormEvent = new EventEmitter<Room>();
+  resetUserFormEvent = new EventEmitter<User>();
+}
+```
+
+### rooms.component.ts
+
+```tsx
+ngOnInit(): void {
+  //...
+  this.route.queryParams.subscribe(
+    (params) => {
+      // ...
+      if (this.action === 'add') {
+        this.selectedRoom = new Room();
+        this.action = 'edit';
+        **this.formResetService
+						.resetRoomFormEvent.emit(this.selectedRoom);**
+      }
+    }
+  )
+}
+```
+
+### room-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.initializeForm();
+  this.resetEventSubscription = this.formResetService
+																		.resetRoomFormEvent.subscribe(
+    room => {
+      this.room = room;
+      this.initializeForm();
+    }
+  )
+}
+```
+
+Do the same for users and user-edit components.
+
+## 130 Implementing the delete functions
+
+131 Displaying data with pipes
+
+132 Exercise 4 - Displaying the calendar component
+
+133 Exercise 4 - Solution walkthrough
+
+134 Exercise 5 - Create the add, edit and delete functionality
+
+135 Exercise 5 - Solution walkthrough part 1
+
+136 Exercise 5 - Solution walkthrough part 2
+
+137 Responding to the calendar click event
