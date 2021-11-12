@@ -744,16 +744,341 @@ Do the same for users and user-edit components.
 
 ## 130 Implementing the delete functions
 
-131 Displaying data with pipes
+Before we start working on the Calendar component, there’s just a couple of bits of functionality we need to deal with. In the Rooms component there is a delete button that we haven’t yet implemented, and in the Users component there’s also a delete button, but there’s also *password reset* button. We can’t do much with this password reset. We will do it properly when we work with the REST data service when we’ve got our backend. But we’ll do something just to get some kind of click event on that button. Both delete and password reset will need to be calling methods in the data service.
 
-132 Exercise 4 - Displaying the calendar component
+### data.service.ts
 
-133 Exercise 4 - Solution walkthrough
+```tsx
+deleteRoom(id: number): Observable<any> {
+  const room = this.rooms.find(r => r.id === id);
+  this.rooms.splice(this.rooms.indexOf(room), 1);
+  return of(null);
+}
+deleteUser(id: number): Observable<any> {
+  const user = this.users.find(u => u.id === id);
+  this.users.splice(this.users.indexOf(user), 1);
+  return of(null);
+}
+```
 
-134 Exercise 5 - Create the add, edit and delete functionality
+### in user-detail.component.ts
 
-135 Exercise 5 - Solution walkthrough part 1
+```tsx
+deleteUser(): void {
+  this.dataService.deleteUser(this.user.id).subscribe(
+    next => {
+      this.router.navigate(['admin', 'users']);
+    }
+  )
+}
 
-136 Exercise 5 - Solution walkthrough part 2
+resetPassword(): void {
+  this.dataService.resetUserPassword(this.user.id).subscribe(
+    next => {
+      console.log("Reset is not implemented yet");
+    }
+  );
+}
+```
+
+### in user-detail.component.html
+
+```html
+<a class="btn btn-small btn-warning" (click)="deleteUser()"
+  >delete</a>
+...
+<td><a class="btn btn-small btn-warning"
+       (click)="resetPassword()"
+>reset</a></td>
+```
+
+### in room-detail.component.ts
+
+```tsx
+deleteRoom() {
+  this.dataService.deleteRoom(this.room.id).subscribe(
+    next =>  this.router.navigate(["admin", "rooms"])
+  )
+}
+```
+
+### in room-detail.component.html
+
+```html
+<a class="btn btn-small btn-warning" (click)="deleteRoom()">delete</a>
+```
+
+## 131 Displaying data with pipes for dates
+
+Before we start working on the calendar component, which is going to be a task that I’m going to get you to do, we’ll set you a couple of exercises, there’s one last piece of functionality we think will be useful to know about. It is displaying dates in a specific format in Angular. This functionality is called Pipes. It allows us to change the way that something is displayed.
+
+[The Pipes guide.](https://angular.io/guide/pipes)
+
+### in calendar.component.html
+
+```html
+<p>The selected date is {{ selectedDate | date:'yyyy-MM-dd' }}</p>
+<p>The selected month is {{ selectedDate | date:'MMM' }}</p>
+<p>The selected month is {{ selectedDate | date:'MMMM' }}</p>
+```
+
+## 132 Exercise 4 - Displaying the calendar component
+
+We’re finally ready to start working on the implementation of the calendar functionality.
+
+We’ve split the job of building the calendar functionality into two parts. The first part is implementing the calendar component view functionality.
+
+Display the calendar component:
+
+- Create the model - a class representing a Booking (code provided)
+- Create a getBookings() method in the data service, add dummy bookings
+- Create the view screen and bind the data
+
+## 133 Exercise 4 - Solution walkthrough
+
+### in data.service.ts
+
+```tsx
+private bookings: Array<Booking> = new Array<Booking>();
+// ...
+getBookings(): Observable<Array<Booking>> {
+  return of(this.bookings);
+}
+// ...
+constructor() {
+	// ...
+  const today: string = formatDate(new Date(), 'yyyy-MM-dd', 'en-UK');
+  const booking1 = new Booking(room1, user1, Layout.THEATER, 
+								'Example Booking 1', today, '14:00', '15:00', 3, 201);
+  const booking2 = new Booking(room2, user2, Layout.USHAPE, 
+								'Example Booking 2', today, '15:00', '16:00', 5, 202);
+  this.bookings.push(booking1);
+  this.bookings.push(booking2);
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+bookings: Array<Booking>;
+
+constructor(private dataService: DataService) { }
+
+ngOnInit(): void {
+  this.dataService.getBookings().subscribe(
+    next =>  this.bookings = next
+  )
+}
+```
+
+### in calendar.component.html
+
+```html
+<h3 class="mt-5" *ngIf="bookings.length === 0">There are no meetings currently scheduled for this date.</h3>
+
+<div class="row row-striped" *ngFor="let booking of bookings">
+  <div class="col-2 text-right">
+    <h1 class="display-4"><span class="badge badge-secondary">{{ booking.getDateAsDate() | date:'dd'}}</span></h1>
+    <h2>{{ booking.getDateAsDate() | date:'MMM' }}</h2>
+  </div>
+  <div class="col-10">
+    <h3 class="text-uppercase"><strong>{{ booking.title }}</strong></h3>
+    <ul class="list-inline">
+      <li class="list-inline-item">
+        <i class="fa fa-calendar-o" aria-hidden="true"></i>{{ booking.getDateAsDate() | date:'EEE'}}</li>
+      <li class="list-inline-item">
+        <i class="fa fa-clock-o" aria-hidden="true"></i>{{ booking.startTime }} - {{ booking.endTime }}</li>
+      <li class="list-inline-item"><i class="fa fa-location-arrow" aria-hidden="true"></i>{{ booking.room.name }}</li>
+    </ul>
+    <div class="row">
+      <div class="col-6">
+        <p class="mb-0">Booked by : {{ booking.user.name}}</p>
+        <p class="mb-0">Room layout: {{ booking.layout }}</p>
+        <p>Participants: {{ booking.participants }}</p>
+      </div>
+      <div class="col-6">
+        <a class="btn btn-warning">Amend</a>
+        <a class="btn btn-danger">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+## 134 Exercise 5 - Create the add, edit and delete functionality
+
+Create the editing functionality:
+
+- Create an EditBooking component and set up navigation
+- Create the add and edit booking functionality
+- Create the delete functionality
+
+## 135 Exercise 5 - Solution walkthrough part 1
+
+First we create the new component: `ng g c calendar/BookingEdit`. The first thing we’re going to do in the TypeScript file is put in a local variable of type Booking. We don’t know at this stage if we’ll need the Input decorator. Because we’re going to be navigating to this object we think we’ll just leave it like that for now.
+
+We add prepared HTML and we’ll work our way through and bind to the object in the backend. When we worked with users we needed to take a copy of the object. We don’t think we’ll need to do that here, because we’re not going to be showing this form at the same time as the view form. So we can just bind straight to that booking object.
+
+### in booking-edit.component.html
+
+```html
+<form>
+  <div class="row">
+    <div class="form-group col-4">
+      <label for="date">Date</label>
+      <input type="date" class="form-control" id="date" 
+												[(ngModel)]="booking.date" name="date">
+    </div>
+    <div class="form-group col-4">
+      <label for="startTime">Start time</label>
+      <input type="time" class="form-control" id="startTime" 
+										[(ngModel)]="booking.startTime" name="startTime">
+    </div>
+    <div class="form-group col-4">
+      <label for="endTime">End time</label>
+      <input type="time" class="form-control" id="endTime" 
+										[(ngModel)]="booking.endTime" name="endTime">
+    </div>
+  </div>
+	...
+</form>
+```
+
+For room we have drop-down *select* element. We want to repeat the room object for each *option* element in this *select*. So we need to get a list of rooms in the backing file.
+
+### in booking-edit.component.ts
+
+```tsx
+rooms: Array<Room>;
+
+constructor(private dataService: DataService) { }
+
+ngOnInit(): void {
+  this.dataService.getRooms().subscribe(
+    next => this.rooms = next
+  )
+}
+```
+
+In the HTML we want to repeat the *option* element for every room, where we set name of every room and we bind the value of every option: `[ngValue]="room"` . And we bind the *select* element to the actual Booking room: `[(ngModel)]="booking.room"`.
+
+### in booking-edit.component.html
+
+```html
+<div class="form-group col-5">
+  <label for="room">Room</label>
+  <select class="form-control" id="room" 
+					[(ngModel)]="booking.room" name="room">
+    <option *ngFor="let room of rooms" 
+						[ngValue]="room" >{{ room.name }}</option>
+  </select>
+</div>
+```
+
+We do the same for layouts and other input elements.
+
+### in booking-edit.component.html
+
+```html
+<div class="row">
+  <div class="form-group col-5">
+    <label for="layout">Layout</label>
+    <select class="form-control" id="layout" 
+											[(ngModel)]="booking.layout" name="layout">
+      <option *ngFor="let layout of layouts" 
+											[ngValue]="layoutMap.get(layout)"
+      >{{ layoutMap.get(layout) }}</option>
+    </select>
+  </div>
+  <div class="form-group col-2">
+    <label for="participants">Participants</label>
+    <input type="number" class="form-control" id="participants"
+           [(ngModel)]="booking.participants" name="participants">
+  </div>
+</div>
+<div class="row">
+  <div class="form-group col-6">
+    <label for="layout">User</label>
+    <select class="form-control" id="user" 
+												[(ngModel)]="booking.user" name="user">
+      <option *ngFor="let user of users" [ngValue]="user"
+      >{{ user.name }}</option>
+    </select>
+  </div>
+  <div class="form-group col-6">
+    <label for="title">Meeting title</label>
+    <input type="text" class="form-control" id="title" 
+												[(ngModel)]="booking.title" name="title">
+  </div>
+</div>
+```
+
+In order for us to see this working, we need to create some kind of navigation to be able to see this screen. Let’s go to the app module where we’ve defined our navigation and add new routing for edit booking: 
+
+`{path : 'bookingEdit', component : BookingEditComponent},`.
+
+### in calendar.component.ts
+
+```tsx
+editBooking(bookingId: number) {
+  this.router.navigate(['bookingEdit'], 
+						{queryParams: {id: bookingId}});
+}
+```
+
+### in calendar.component.html
+
+```html
+<a class="btn btn-warning" (click)="editBooking(booking.id)">Amend</a>
+```
+
+### in booking-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+    const id = this.route.snapshot.queryParams['id'];
+    const idNumber = +id;
+    this.dataService.getBookingById(idNumber)
+										.subscribe(next => this.booking = next);
+    //...
+  }
+```
+
+We’ve populated the form now. 
+
+## 136 Exercise 5 - Solution walkthrough part 2
+
+The next step is going to be to implement the save button.
+
+### in data.service.ts
+
+```tsx
+saveBooking(booking: Booking): Observable<Booking> {
+  const existing: Booking = this.bookings
+																.find(b => b.id === booking.id);
+  booking.copyTo(existing);
+  return of(existing);
+}
+```
+
+### in booking-edit.component.ts
+
+```tsx
+saveBooking(): void {
+  this.dataService.saveBooking(this.booking).subscribe(
+    next => this.router.navigate([''])
+  );
+}
+```
+
+### in booking-edit.component.html
+
+```html
+<button type="button" class="btn btn-primary"
+        (click)="saveBooking()"
+>Save</button>
+```
+
+The final step is to add a booking.
 
 137 Responding to the calendar click event
