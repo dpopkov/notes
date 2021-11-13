@@ -1079,6 +1079,140 @@ saveBooking(): void {
 >Save</button>
 ```
 
-The final step is to add a booking.
+The final step is to add a booking. We’ll create a new URL for the add booking object. We add a new route to app.module.ts:
 
-137 Responding to the calendar click event
+ `{path : 'bookingAdd', component : BookingEditComponent}`.
+
+### in calendar.component.ts
+
+```tsx
+addBooking() {
+  this.router.navigate(['bookingAdd']);
+}
+```
+
+### in booking-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  const id = this.route.snapshot.queryParams['id'];
+  if (id) {
+    const idNumber = +id;
+    this.dataService.getBookingById(idNumber)
+										.subscribe(next => this.booking = next);
+  } else {
+    this.booking = new Booking();
+  }
+	// ...
+}
+```
+
+### in data.service.ts
+
+```tsx
+addBooking(newBooking: Booking): Observable<Booking> {
+  let maxId = 0;
+  for (const b of this.bookings) {
+    if (b.id > maxId) {
+      maxId = b.id;
+    }
+  }
+  newBooking.id = maxId + 1;
+  this.bookings.push(newBooking);
+  return of(newBooking);
+}
+```
+
+### in booking-edit.component.ts
+
+```tsx
+onSubmit(): void {
+  if (this.booking.isNew()) {
+    this.dataService.addBooking(this.booking).subscribe(
+      next => this.router.navigate([''])
+    )
+  } else {
+    this.dataService.saveBooking(this.booking).subscribe(
+      next => this.router.navigate([''])
+    );
+  }
+}
+```
+
+Final job is the cancel button.
+
+### in data.service.ts
+
+```tsx
+deleteBooking(bookingId: number): Observable<any> {
+  const found: Booking = this.bookings
+															.find(b => b.id === bookingId);
+  this.bookings.splice(this.bookings.indexOf(found), 1);
+  return of(null);
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+deleteBooking(bookingId: number) {
+  this.dataService.deleteBooking(bookingId).subscribe();
+}
+```
+
+### in calendar.component.html
+
+```html
+<div class="col-6">
+  <a class="btn btn-warning" (click)="editBooking(booking.id)"
+	>Amend</a>
+  <a class="btn btn-danger" **(click)="deleteBooking(booking.id)"**
+	>Cancel</a>
+</div>
+```
+
+## 137 Responding to the calendar click event
+
+We want to bind the value of the calendar input element to a date. We add a variable selectedDate: `selectedDate: string;`
+
+### in data.service.ts
+
+```tsx
+getBookings(date: string): Observable<Array<Booking>> {
+  return of(this.bookings.filter(b => b.date === date));
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.route.queryParams.subscribe(
+    params => {
+      this.selectedDate = params['date'];
+      if (!this.selectedDate) {
+        this.selectedDate = formatDate(new Date(), 'yyy-MM-dd', 'en');
+      }
+      this.dataService.getBookings(this.selectedDate).subscribe(
+        next =>  this.bookings = next
+      )
+    }
+  )
+}
+//...
+dateChanged() {
+  this.router.navigate([''], 
+											{queryParams: {date : this.selectedDate}});
+}
+```
+
+### in calendar.component.html
+
+```html
+<h2>The following meetings are taking place on:
+  <input type="date" [(ngModel)]="selectedDate" name="selectedDate" 
+				(change)="dateChanged()" />
+</h2>
+```
+
+We’re finally ready to start connecting to a REST backend.
