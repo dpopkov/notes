@@ -121,14 +121,94 @@ To run with local configuration: `ng serve -c local`.
 
 ## 143 Creating a rest method (7m)
 
-144 Testing rest method (3m)
+The focus is going to be on what you need to do to ensure the application works with Angular.
 
-145 Exercise 1 - creating rest methods (2m)
+The one thing we need to know at this point is that Angular uses JSON as the data format for REST and that’s great because it is the default for Spring as well, as long as your methods return some kind of object. So the return type for the methods that we create is going to be important. In general, we won’t to create methods that return a string. We’ll always want to return either an instance of a class or some kind of collection object.
 
-146 Exercise 1 - solution walkthrough (8M)
+We should create a new package for our REST controllers called *rest*. And we create class RestRoomController:
 
-147 Adjusting the User object
+```java
+@RestController
+@RequestMapping("/api/rooms")
+public class RestRoomController {
+    private final RoomRepository roomRepository;
+
+    public RestRoomController(RoomRepository roomRepository) {
+        this.roomRepository = roomRepository;
+    }
+
+    @GetMapping
+    public List<Room> getAllRooms() {
+        return roomRepository.findAll();
+    }
+}
+```
+
+## 144 Testing rest method (3m)
+
+We can view the response of this method by any browser at this URL:
+
+ `http://localhost:8080/api/rooms`
+
+We also can use *curl* or *httpie* utilities.
+
+```bash
+curl http://localhost:8080/api/rooms     # get response
+curl -I http://localhost:8080/api/rooms  # view headers
+```
+
+## 145 Exercise 1 - creating rest methods (2m)
+
+Create the Rooms REST API:
+
+| HTTP VERB | URL | Action |
+| --- | --- | --- |
+| GET | /api/rooms | Get all rooms |
+| GET | /api/rooms/123 | Get the room with id=123 |
+| POST | /api/rooms | Add a room |
+| PUT | /api/rooms | Update a room |
+
+Create the Users REST API (don’t worry about error handling).
+
+## 146 Exercise 1 - solution walkthrough (8M)
+
+## 147 Adjusting the User object
+
+Now the user’s password is not encoded in the database. We’ll create a 2nd version of the User object which doesn’t contain the password.
+
+```java
+public class AngularUser {
+    private Long id;
+    private String name;
+		// ...
+    public AngularUser(User user) {
+        this.id = user.getId();
+        this.name = user.getName();
+    }
+    public User asUser() {
+        User newUser = new User();
+        newUser.setId(this.id);
+        newUser.setName(this.name);
+        newUser.setPassword("");
+        return newUser;
+    }
+}
+```
 
 # Chapter 29 - Connecting to a REST endpoint (41m)
+
+148 Initiating the call to a REST endpoint (9m)
+
+149 Cross Original Resource Sharing (CORS) (5m)
+
+150 Configuring CORS in Spring (6m)
+
+151 Manipulating the REST return data type (7m)
+
+152 Pre-processing the REST return data (5m)
+
+153 Optional calling a REST endpoint exercise (1m)
+
+154 Pre-processing complex data (8m)
 
 # Chapter 30 - Dealing with slow and unavailable connections (26m)
