@@ -197,15 +197,135 @@ public class AngularUser {
 
 # Chapter 29 - Connecting to a REST endpoint (41m)
 
-148 Initiating the call to a REST endpoint (9m)
+## 148 Initiating the call to a REST endpoint (9m)
 
-149 Cross Original Resource Sharing (CORS) (5m)
+In this chapter we’re going to learn how to call a REST resource from Angular. The process of communicating between Angular and a backend using REST should be easy, but as we’ll see there are some rather annoying complications to get this to work. So we will have a bit of work to do to make our first successful REST call. We could just show you the full solution to how to do this, but instead, we’re going to be working through it step by step over the next few chapters, so that we encounter all the errors and problems together that could occur, and then hopefully by the end of this process, you’ll not only have a good idea of exactly how this works, but if you encounter similar errors in your own projects, you’ll know exactly how to solve them.
 
-150 Configuring CORS in Spring (6m)
+The starting point is that we’ll need to import a new module into our project which is called the HttpClientModule. So we’ll start in app.module.ts, and we have a list of modules here in the “import” section. We need to add in another one, which is HttpClientModule. 
 
-151 Manipulating the REST return data type (7m)
+### in app.module.ts
 
-152 Pre-processing the REST return data (5m)
+```tsx
+imports: [
+  BrowserModule,
+  FormsModule,
+  ReactiveFormsModule,
+  **HttpClientModule,**
+  RouterModule.forRoot(routes)
+],
+```
+
+And having this module in app.module allows us then to use an object called HttpClient in our project’s classes. And we’ll get that object using dependency injection.
+
+Before we go any further, let’s make sure, let’s make sure we’re running with the development environment.
+
+In the data service’s constructor, we want to use dependency injection to get an instance of HttpClient class.
+
+### in data.service.ts
+
+```tsx
+constructor(**private http: HttpClient**) {
+  console.log('data.service.ts: environment.restUrl=', 
+							 environment.restUrl);
+}
+```
+
+Now we’d like to create a method to get a single user object. We’re going to create an extra method in here. We will be deleting this later on, we’re not going to copy this into the other version of the data service class.
+
+### in data.service.ts
+
+```tsx
+getUser(id: number) : Observable<User> {
+  console.log('data.service.ts: getUser with id=', id)
+  return this.http.get<User>(
+														environment.restUrl + '/api/users/' + id);
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.dataService.getUser(13).subscribe(
+    user => {
+      console.log('in calendar: user:', user);
+      console.log('in calendar: typeof user:', typeof user);
+    }
+  );
+	// ...
+}
+```
+
+Actually this isn’t going to work, because there are going to be some complications.
+
+## 149 Cross Origin Resource Sharing (CORS) (5m)
+
+The error is: 
+
+Access to XMLHttpRequest at 'http://localhost:8080/api/users/13' from origin 'http://localhost:4200' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+CORS is a security policy which is implemented in browsers to protect users against what are known as hijacking attempts, and the idea behind CORS is this. A typical web page might have some JS code blocks in it. Thee JS code blocks will implement CORS to servers after the page has loaded. If you are familiar with AJAX, that would be a good example. The page loads first, and then, a script within the page goes off to some server to get some data to display on the page. In fact, that’s exactly what we are trying to do. The browser already has the page. It’s now just making a request to get some data. If that JS request is made to the same server that the page originally came from, my browser will be quite happy with that. The problem can occur if the data is coming from somewhere else. If the JS is initiating a call to a different server to get some data from that, then the browser will block that request by default. The risk is that the server we know about, the one that gave us the web page in the first place, could have provided the JS in our browser with some sensitive information, and by default, browsers don’t allow us to send any information to other servers without explicit permission to allow them to do so.
+
+When we want to communicate with a different server, what we’re doing is called a cross-origin-request, meaning that we’ve crossed from one domain to another. And to allow that to happen, we’ll need to enable cross-origin-resource sharing or CORS for short.
+
+Now in our application the web page comes from localhost:4200, and it’s trying to get data from localhost:8080. That is a different origin. The port number is enough for these to be considered different servers. And in fact, of course, as far as our computers concerned, they are different servers. They are different processes, each running their own server, just on a different port. When we go to deploy these to a live production environment, well, our backend and the Angular application are going to have different URLs, so these are also going to be different servers. The same issue is going to occur in production. So although the code we’ve written is correct, our browser is blocking the request. It actually still fires off the request to he endpoint, it reaches the server, but it blocks the response we get back from the server. 
+
+This is a security policy implemented in browsers and we need to tell the browser that this response it got from localhost:8080 is a permitted response. We want to tell the browser that we’re going to allow responses from that server in this application. And that is some configuration we actually do in the server. So, we’re going to set p some configuration in Spring.
+
+## 150 Configuring CORS in Spring (6m)
+
+This is primarily an Angular course, not a Spring course. So we’re focusing here on the configuration we need to do for Spring to make it work with Angular, and we’re not going to go into a huge amount of detail about all the different ways we can configure Spring and what all the different options are. We just want to show you enough to make it work with Angular. We’re actually going to put an extra header into every REST response that says that this CORS option is going to be permitted. So we’re going to create a configuration class in Spring and then use that configuration class to allow these cross option requests.
+
+We’ll create a new package called *config* and a new class *CorsConfig*.
+
+### in *CorsConfig.java*
+
+```java
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedMethods("GET", "POST", "PUT")
+                .allowedOrigins("http://localhost:4200");
+        // Need to change the URL for the production URL 
+				// when we deploy
+    }
+}
+```
+
+## 151 Manipulating the REST return data type (7m)
+
+The object type we get back is not a user object. As we can see it’s an object of type *object*. It is a JavaScript object and it has key-value pairs containing the values. It’s not even easy to convert this to an object of type *User*. Most of the time this isn’t a problem. But it will be a problem if our User class has methods that we want to be able to call. If we want to be able to make it a genuine User object, we can’t just convert it or cast to it. What we actually need to do is create an instance of the *User* class from the data that we get back. The way we’re going to do that is by creating a helper method in the *User* class itself.
+
+### in User.ts
+
+```tsx
+static fromHttp(user: User): User {
+  return new User(user.id, user.name);
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.dataService.getUser(13).subscribe(
+    user => {
+      console.log('in calendar ngOnInit(): user:', user);
+      console.log('in calendar ngOnInit(): typeof user:', 
+																							typeof user);
+      const tsUser: User = User.fromHttp(user);
+      console.log('in calendar ngOnInit(): tsUser:', tsUser);
+      console.log('in calendar ngOnInit(): tsUser.isNotNew():', 
+																							tsUser.isNotNew());
+    }
+  );
+	// ...
+}
+```
+
+## 152 Pre-processing the REST return data (5m)
 
 153 Optional calling a REST endpoint exercise (1m)
 
