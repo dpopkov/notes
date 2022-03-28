@@ -327,8 +327,372 @@ ngOnInit(): void {
 
 ## 152 Pre-processing the REST return data (5m)
 
-153 Optional calling a REST endpoint exercise (1m)
+So we’ve seen that we can manipulate the returned data type, but actually it would be nicer if we can do this as part of the subscribe process to do some preprocessing on the data. We can do some preprocessing in the data service on the *http.get* method before subscribe runs.
 
-154 Pre-processing complex data (8m)
+### in data.service.ts
+
+```tsx
+getUser(id: number) : Observable<User> {
+  return this.http.get<User>(environment.restUrl + '/api/users/' + id)
+    .pipe(
+      map(data => User.fromHttp(data))
+    );
+}
+```
+
+You understand now the principles of how to make REST calls work. We’ve seen two complications so far. Browsers block calls by default so we have to enable it by configurint our server correctly, and REST requests receive back JavaScript objects that we’ll normally want to convert into real class instances by applying some kind of preprocessing using *pipe(map)* construct.
+
+This code in the calendar component is for illustration purposes and will be removed later on.
+
+## 153 Optional calling a REST endpoint exercise (1m)
+
+Implement *getUsers()* and *getRooms()* methods.
+
+## 154 Pre-processing complex data (8m)
+
+### in Rooms.ts
+
+```tsx
+export class Room {
+	// ...
+  static fromHttp(room: Room) : Room {
+    let newRoom = new Room(room.name, room.location, room.id);
+    for (const lcData of room.capacities) {
+      newRoom.addLayoutCapacity(LayoutCapacity.fromHttp(lcData));
+    }
+    return newRoom;
+  }
+}
+export class LayoutCapacity {
+	// ...
+  static fromHttp(lcData: LayoutCapacity) : LayoutCapacity {
+    return new LayoutCapacity(Layout[lcData.layout], lcData.capacity);
+  }
+}
+```
+
+### in data.service.ts
+
+```tsx
+getRooms(): Observable<Array<Room>> {
+  return this.http.get<Array<Room>>(
+													environment.restUrl + '/api/rooms')
+    .pipe(
+      map(data => {
+        const rooms = new Array<Room>();
+        for (const roomData of data) {
+          rooms.push(Room.fromHttp(roomData));
+        }
+        return rooms;
+      })
+    );
+}
+
+getUsers(): Observable<Array<User>> {
+  return this.http.get<Array<User>>(
+													environment.restUrl + '/api/users')
+    .pipe(
+      map(data => {
+        const users = new Array<User>();
+        for (const userData of data) {
+          users.push(User.fromHttp(userData));
+        }
+        return users;
+      })
+    );
+}
+```
 
 # Chapter 30 - Dealing with slow and unavailable connections (26m)
+
+## 155 Dealing with slow REST responses (5m)
+
+In this chapter we’re going to understand what would happen if our backend server wasn’t available, so the REST call doesn’t work. Before we get to that we’ll also see what happens if it does work but there’s a delay between the initiation of the REST call and the response being received back from the server. May be the network is slow, or the server has a lot of data to send back, so it’s a response which takes at least a second or two.
+
+Before we get started we want to remove the test data we wrote in the calendar component in the last chapter and also the extra method *getUser(id)*.
+
+To simulate slow response we’re going to put a delay in the backend.
+
+### in RestRoomController.java
+
+```java
+@RestController
+@RequestMapping("/api/rooms")
+public class RestRoomController {
+    //...
+    @GetMapping
+    public List<Room> getAllRooms() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Delay interrupted", e);
+        }
+        return roomRepository.findAll();
+    }
+}
+```
+
+### in rooms.component.ts
+
+```tsx
+**loadingData = true;**
+
+ngOnInit(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+      **this.loadingData = false;**
+    }
+  )
+  //...
+}
+```
+
+### in rooms.component.html
+
+```html
+<div *ngIf="loadingData"
+>Please wait... getting the list of rooms</div>
+```
+
+## 156 Catching REST errors (3m)
+
+Let’s see what happens when an error occurs. The easiest way to simulate this is if we stop our backend server from running. If we do that then our page is stuck with “Please wait...” message and we receive error in console.
+
+It’s important whenever we’re dealing with REST calls that we always need to think about what we’re going to do when an error occurs. When an error occurs we could use additional parameter *error* in the subscribe.
+
+### in rooms.component.ts
+
+```tsx
+**message = 'Please wait... getting the list of rooms';**
+
+ngOnInit(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+      this.loadingData = false;
+    },
+    **(error) => {**
+			// try to replace this error.message with a more 
+			// meaningful message to the user
+      **this.message = 'Sorry - something went wrong, please try again.'
+        + error.message;**  
+      console.log('ngOnInit: error:', error);
+    }
+  )
+}
+```
+
+### in rooms.component.html
+
+```html
+<div *ngIf="loadingData">{{ message }}</div>
+```
+
+## 157 Investigating REST errors (5m)
+
+If we look at the console, we can have a look at an error object. We would expect to see an error somewhere in the 400 or 500 ranges but we don’t see that here. What we see is a *status* value and that would be the field that contains the error code, which we would expect to be something like 404 if the page wasn’t found for example. And what we get here is a zero:
+
+```json
+{
+    "headers": {
+        "normalizedNames": {},
+        "lazyUpdate": null,
+        "headers": {}
+    },
+    **"status": 0,**
+    "statusText": "Unknown Error",
+    "url": "http://localhost:8080/api/rooms",
+    "ok": false,
+    "name": "HttpErrorResponse",
+    "message": "Http failure response for http://localhost:8080/api/rooms: 0 Unknown Error",
+    "error": {
+        "isTrusted": true
+    }
+}
+```
+
+To view what would normally happen we could change the method to return an invalid status.
+
+### in RestRoomController.java
+
+```java
+@GetMapping
+    public List<Room> getAllRooms(HttpServletResponse response) {
+        response.setStatus(402);
+        return null;
+    }
+```
+
+Then it we refresh the call to get all rooms we receive status code 402 in the error object. So most of the time we would expect to be able to query the errors status value to find out what went wrong. So it would be possible to write code that says “if status equals 402 then display this message, if the status is 401 then display another message”.
+
+If there is a genuine error we’ll get a status code we can do something with it. But if the error is that the server didn’t respond then the status code comes back as being a zero. The reason for this is a little bit complicated. It’s a feature of the browser. It’s fine to investigate the value of error.status but a status of zero actually means that the server didn’t respond. Any other status code would have the right value and that would allow us to do something with it.
+
+This is the example of how you can use error status:
+
+### in rooms.components.ts
+
+```tsx
+ngOnInit(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+      this.loadingData = false;
+    },
+    (error) => {
+      if (error.status === 402) {
+        this.message = 'Sorry - you need to pay to use this application';
+      } else {
+        this.message = 'Sorry - something went wrong, please try again.';
+      }
+    }
+  )
+}
+```
+
+## 158 Retrying when an error occurs (6m)
+
+If an error 402 occurs that’s effectively a permanent problem. We just want to display a message to the user and stop. But if something else goes wrong, it might be a temporary fault, it might be a network problem, may be the server is overloaded, but try again would work. We are displaying a message “Please try again...” but it would be nice if we could get our code to automatically try again.
+
+When we learned about the subscribe method using our Observer design pattern, as soon as the error occurs, the subscription is lost. The object is automatically unsubscribed and what that means is that if data comes through after an error, we’ll never see it. Actually the way that a REST would work, that can never happen, we won’t ever get data come through after an error. But the idea is then that if we want to do an automatic re-try, we’ll need to reissue the command to try and get the rooms. Let’s see how it might look.
+
+First we refactor out the code to a separate method *loadData()*. Then we introduce class level variable to count attempts to load data.
+
+### in rooms.components.ts
+
+```tsx
+ngOnInit(): void {
+  this.loadData();
+  //...
+}
+
+loadData(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+      this.loadingData = false;
+    },
+    (error) => {
+      if (error.status === 402) {
+        this.message = 'Sorry - you need to pay to use this application';
+      } else {
+        this.reloadAttempts++;
+        if (this.reloadAttempts < 10) {
+          this.message = 'Sorry - something went wrong, please trying again.... please wait';
+          this.loadData();
+        } else {
+          this.message = 'Sorry - something went wrong, please contact support';
+        }
+      }
+    }
+  )
+}
+```
+
+## 159 Surviving a page refresh (4m)
+
+Before we leave this chapter, we want to point out that there’s a small problem with what we’ve built so far and we’d like to fix it before we move on.
+
+If we refresh the rooms page, this will work absolutely fine. But let’s imagine we’re viewing one of these rooms, for example room number 1. The url contains id of 1 and action of “view”. If we do a browser refresh on this page, then we get an error in our console. The list of rooms does appear, but the details of a selected room does not.
+
+The reason is that when we refresh the browser, the application is loading from scratch. All the data or state in the application is completely lost. So when the code in ngOnInit runs, all of the class level variables such as rooms, selectedRoom are going to be empty. Every time we refresh the page *rooms* will be emtpy. When we’re going to a specific URL, which is to view a room with a specific ID, then we don’t have initialized array of rooms yet to find a selected room. Our server, because there’s a slight delay, hasn’t responded with a list of rooms. We’re trying to run some code against an uninitialized variable *rooms*.
+
+The way that we’ll get round that is we don’t want the whole code block dealing with the query parameters to run unless our data has been loaded. We’re moving this code into a separate method *processUrlParams()* and we’re going to call it after we have successfully loaded the data within the method *loadData()*.
+
+### in rooms.components.ts
+
+```tsx
+**ngOnInit(): void {
+  this.loadData();
+}**
+
+loadData(): void {
+  this.dataService.getRooms().subscribe(
+    (next) => {
+      this.rooms = next;
+      this.loadingData = false;
+      **this.processUrlParams();**
+    },
+    (error) => {
+      //...
+    }
+  )
+}
+
+**private processUrlParams()** {
+  this.route.queryParams.subscribe(
+    (params) => {
+      const idAsString = params['id'];
+      if (idAsString) {
+        const idAsNumber = +idAsString;
+        // @ts-ignore
+        this.selectedRoom = this.rooms
+																.find(room => room.id === idAsNumber);
+      }
+      this.action = params['action'];
+      if (this.action === 'add') {
+        this.selectedRoom = new Room();
+        this.action = 'edit';
+        this.formResetService.resetRoomFormEvent
+															.emit(this.selectedRoom);
+      }
+    }
+  )
+}
+```
+
+## 160 Exercise 2 - Dealing with slow and unavailable connections (1m)
+
+Everything we’ve done so far we’ve done in the Rooms component. We’d like you to replicate this in the Users component. So we want to be able to deal with if the server doesn’t respond, if there’s an error, and if the server responds with a slow response, having a nice user experience in Angular.
+
+For this exercise when an error occurs, just display a nice message to the user, we don’t think you should replicate the code that does the retries or that looks at what the error actually is and displays a message depending on the error. Let’s just display a generic message saying, “I’m sorry, an error has occurred. You’ll need to contact support.”
+
+We need to deal with:
+
+- Slow responses
+- Errors
+- Browser refresh
+
+## 161 Exercise 2 - Solution walkthrough (3m)
+
+### in users.components.ts
+
+```tsx
+**loadingData:** boolean = true;
+**message** = 'Please wait... getting the list of users';
+// ...
+ngOnInit(): void {
+  this.dataService.getUsers().subscribe(
+    (next) => {
+      this.users = next;
+      **this.loadingData = false;**
+      **this.processUrlParams();**
+    },
+    (error) => {
+      this.message = 'Sorry, an error has occurred'
+    }
+  )
+}
+
+**private processUrlParams() {**
+  this.route.queryParams.subscribe(
+    (params) => {
+      const idString = params['id'];
+      if (idString) {
+        const idNumber = +idString;
+        // @ts-ignore
+        this.selectedUser = this.users
+																.find(user => user.id === idNumber);
+      }
+      this.action = params['action'];
+    }
+  )
+}
+```
+
+### in users.components.html
+
+```html
+<div *ngIf="loadingData">{{ message }}</div>
+
+```
