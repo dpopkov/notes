@@ -283,4 +283,161 @@ Use `?` after a variable that may be undefined: `<td>{{ user?.id }}</td>`
 
 # Chapter 32 - DELETing data and completing the case study (28m)
 
+## 167 Implementing DELETE (5m)
+
+In the last 2 chapters of this module we’re going to complete the case study. In this 1st chapter we’ll implement a couple of the remaining features for users in rooms. Let’s work on users and rooms together. We still need to implement the functionality to delete a room ,and to delete a user, and reset a users password. We’ll start with deleting a room.
+
+### in RestRoomController.java
+
+```java
+@DeleteMapping("/{roomId}")
+public void deleteRoom(@PathVariable Long roomId) {
+    roomRepository.deleteById(roomId);
+}
+```
+
+### in CorsConfig.java
+
+```java
+@Override
+public void addCorsMappings(CorsRegistry registry) {
+    registry.addMapping("/api/**")
+            .allowedMethods("GET", "POST", "PUT", **"DELETE"**)
+            .allowedOrigins("http://localhost:4200");
+}
+```
+
+### in data.service.ts
+
+```tsx
+deleteRoom(id: number): Observable<any> {
+  return this.http.delete(environment.restUrl + '/api/rooms/' + id);
+}
+```
+
+### in room-detail.component.ts
+
+```tsx
+@Output()
+dataChangedEvent = new EventEmitter();
+message = '';
+
+deleteRoom() {
+  this.message = 'Deleting...';
+  this.dataService.deleteRoom(this.room.id).subscribe(
+    next =>  {
+      this.dataChangedEvent.emit();
+      this.router.navigate(["admin", "rooms"]);
+    }
+  ), error => {
+    this.message = 
+					'Sorry - this room cannot be deleted at this time.';
+  }
+}
+```
+
+### in room-detail.component.html
+
+```html
+<div class="bg-warning p-5" *ngIf="message">{{ message }}</div>
+```
+
+### in rooms.component.html
+
+```html
+<app-room-detail *ngIf="action === 'view'" [room]="selectedRoom"
+                  (dataChangedEvent)="loadData()"></app-room-detail>
+```
+
+## 168 Completing the users component (7m)
+
+### in RestUserController.java
+
+```java
+@DeleteMapping("/{userId}")
+public void deleteUser(@PathVariable Long userId) {
+    userRepository.deleteById(userId);
+}
+```
+
+Resetting the user’s password is a function we want to do, but there’s no obvious REST verb or URL that we should use. So we’re gonna have to decide what’s sensible for our API. To call resetting a password, we’re going to pass in the ID of the user that we want to take the password and reset it, but we’re not going to be sending any other data to the server. And for that reason we actually think it sits best with a GET request. You might disagree and think it really should be a PUT. If you want to make it a PUT, that’s absolutely fine. We’re going to make it a GET request.
+
+### in RestUserController.java
+
+```java
+@GetMapping("/resetPassword/{userId}")
+public void resetPassword(@PathVariable Long userId) {
+    User user = userRepository.findById(userId).orElseThrow();
+    user.setPassword("secret");
+    userRepository.save(user);
+}
+```
+
+### in data.service.ts
+
+```tsx
+deleteUser(id: number): Observable<any> {
+  return this.http.delete(environment.restUrl + '/api/users/' + id);
+}
+
+resetUserPassword(id: number): Observable<any> {
+  return this.http.get(environment.restUrl 
+											+ '/api/users/resetPassword/' + id);
+}
+```
+
+### in user-detail.component.ts
+
+```tsx
+@Output()
+dataChangedEvent = new EventEmitter();
+message = '';
+
+deleteUser(): void {
+  this.message = 'Deleting...';
+  this.dataService.deleteUser(this.user.id).subscribe(
+    next => {
+      this.dataChangedEvent.emit();
+      this.router.navigate(['admin', 'users'])
+    },
+    error => this.message = 
+							'Sorry, this user cannot be deleted at this time.'
+  )
+}
+
+resetPassword(): void {
+  this.message = 'Please wait...';
+  this.dataService.resetUserPassword(this.user.id).subscribe(
+    next => this.message = 'The password has been reset.',
+    error => this.message = 'Sorry, something went wrong.'
+  );
+}
+```
+
+### in user-detail.component.html
+
+```html
+<div class="bg-warning p-5" *ngIf="message">{{ message }}</div>
+```
+
+### in users.component.html
+
+```html
+<app-user-detail *ngIf="action === 'view'" [user]="selectedUser"
+                  **(dataChangedEvent)="loadData()"**></app-user-detail>
+```
+
+## 169 Exercise 4 - Implementing REST from Angular (2m)
+
+Implement
+
+- Get all bookings by date
+- Cancel a booking
+
+Use: `Date sqlDate = Date.valueOf(date);`
+
+170 Exercise 4 - Solution walkthrough (12m)
+
+171 Creating a confirmation before deletig (2m)
+
 # Chapter 33 - Pre-fetching data (37m)
