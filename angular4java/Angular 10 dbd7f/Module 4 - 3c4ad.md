@@ -436,8 +436,134 @@ Implement
 
 Use: `Date sqlDate = Date.valueOf(date);`
 
-170 Exercise 4 - Solution walkthrough (12m)
+## 170 Exercise 4 - Solution walkthrough (12m)
 
-171 Creating a confirmation before deletig (2m)
+Get all bookings by date.
+
+### in RestBookingsController.java
+
+```java
+@RestController
+@RequestMapping("/api/bookings")
+public class RestBookingController {
+    private final BookingRepository bookingRepository;
+
+    public RestBookingController(BookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
+    }
+
+    @GetMapping("/{date}")
+    public List<Booking> getBookingsByDate(@PathVariable String date) {
+        return bookingRepository.findAllByDate(Date.valueOf(date));
+    }
+
+    @DeleteMapping("/{bookingId}")
+    public void deleteBooking(@PathVariable Long bookingId) {
+        bookingRepository.deleteById(bookingId);
+    }
+}
+```
+
+### in data.service.ts
+
+```tsx
+getBookings(date: string): Observable<Array<Booking>> {
+  return this.http.get<Array<Booking>>(environment.restUrl 
+																			+ '/api/bookings/' + date)
+    .pipe(map(data => {
+      const bookings = new Array<Booking>();
+      for (const bookingData of data) {
+        bookings.push(Booking.fromHttp(bookingData));
+      }
+      return bookings;
+    }));
+}
+```
+
+Implement the delete functionality.
+
+### in data.service.ts
+
+```tsx
+deleteBooking(bookingId: number): Observable<any> {
+  return this.http.delete(environment.restUrl + '/api/bookings/' 
+																							+ bookingId);
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.loadData();
+}
+
+private loadData(): void {
+  this.message = 'Loading data...';
+  this.route.queryParams.subscribe(
+    params => {
+      this.selectedDate = params['date'];
+      if (!this.selectedDate) {
+        this.selectedDate = formatDate(new Date(), 'yyy-MM-dd', 'en');
+      }
+      this.dataService.getBookings(this.selectedDate).subscribe(
+        next => {
+          this.bookings = next;
+          this.dataLoaded = true;
+          this.message = '';
+        },
+        error => {
+          this.message = 'Sorry - the data could not be loaded.'
+        }
+      )
+    }
+  )
+}
+
+deleteBooking(bookingId: number) {
+  this.message = 'Deleting, please wait...';
+  this.dataService.deleteBooking(bookingId).subscribe(
+    next => {
+      this.loadData();
+    },
+    error => {
+      this.message = 'Sorry there was a problem deleting the item';
+    }
+  );
+}
+```
+
+## 171 Creating a confirmation before deleting (2m)
+
+`const deleteConfirmed = confirm('Are you sure you wish to delete this room?');`
 
 # Chapter 33 - Pre-fetching data (37m)
+
+## 172 Setting up the edit booking functionality (6m)
+
+We’re going to envounter a slight complication which will required the final feature of Angular that we’re going to be covering in this module, which is pre-fetching data.
+
+### in RestBookingsController.java
+
+```java
+@DeleteMapping("/{bookingId}")
+public void deleteBooking(@PathVariable Long bookingId) {
+    bookingRepository.deleteById(bookingId);
+}
+```
+
+## 173 The concept of pre-fetching data (4m)
+
+We’ll find out the reason for this issue if we look at the code. We’re seeing that the data has been loaded when we’ve got the booking data. But actually, we also want to make sure we’ve got the values for rooms and users before we start displaying this data. The issue we’ve got then is that the rooms is taking some time to come through. It is taking too long. The booking data is available and the “Edit Booking” page is being displayed before we’ve loaded up the users. Thee drop-downs are being populated with the list of users and the list of rooms, but that population of this drop-down data is happening after the booking has been put onto this page. And that’s why the existing booking’s room has not matched one of these rooms and the existing booking’s user has not matched one of these users.
+
+The issue then is that we really want to make sure we’ve got all of this data, not just the booking data, before we consider data to be loaded. A solution is going to be to pre-fetch the data. To get all the rooms and all the users from the backend, before we even start in this component.
+
+There’s a production standard way to do that, but we’ll do a non-production standard way first, just so that you understand exactly the idea of what we’re trying to achieve. So we wouldn’t do it this way in production and we are going to move to a better way of doing things in a few moments time, but the idea is this.
+
+Right now the flow is that the user will be in the calendar component, they’ll click a button and they’ll be navigating to the edit component. We’re going to change this navigation. We’ll no longer directly navigate from calendar to edit. Instead we’re going to create a new component, some interim component that will sit between the two, and the job of this component is to load the data. And we’ll call it for now the *LoadData* component. So when the user clicks on either
+
+174 Pre-fetching data with navigation and a service (15m)
+
+175 Using a resolver (11m)
+
+176 Module summary (1m)
