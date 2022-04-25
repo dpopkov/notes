@@ -554,16 +554,144 @@ public void deleteBooking(@PathVariable Long bookingId) {
 
 ## 173 The concept of pre-fetching data (4m)
 
-We’ll find out the reason for this issue if we look at the code. We’re seeing that the data has been loaded when we’ve got the booking data. But actually, we also want to make sure we’ve got the values for rooms and users before we start displaying this data. The issue we’ve got then is that the rooms is taking some time to come through. It is taking too long. The booking data is available and the “Edit Booking” page is being displayed before we’ve loaded up the users. Thee drop-downs are being populated with the list of users and the list of rooms, but that population of this drop-down data is happening after the booking has been put onto this page. And that’s why the existing booking’s room has not matched one of these rooms and the existing booking’s user has not matched one of these users.
+We’ll find out the reason for this issue if we look at the code. We’re seeing that the data has been loaded when we’ve got the booking data. But actually, we also want to make sure we’ve got the values for rooms and users before we start displaying this data. The issue we’ve got then is that the rooms is taking some time to come through. It is taking too long. The booking data is available and the “Edit Booking” page is being displayed before we’ve loaded up the users. These drop-downs are being populated with the list of users and the list of rooms, but that population of this drop-down data is happening after the booking has been put onto this page. And that’s why the existing booking’s room has not matched one of these rooms and the existing booking’s user has not matched one of these users.
 
-The issue then is that we really want to make sure we’ve got all of this data, not just the booking data, before we consider data to be loaded. A solution is going to be to pre-fetch the data. To get all the rooms and all the users from the backend, before we even start in this component.
+The issue then is that we really want to make sure we’ve got all of this data, not just the booking data, before we consider the data to be loaded. A solution is going to be to pre-fetch the data. To get all the rooms and all the users from the backend, before we even start in this component.
 
 There’s a production standard way to do that, but we’ll do a non-production standard way first, just so that you understand exactly the idea of what we’re trying to achieve. So we wouldn’t do it this way in production and we are going to move to a better way of doing things in a few moments time, but the idea is this.
 
-Right now the flow is that the user will be in the calendar component, they’ll click a button and they’ll be navigating to the edit component. We’re going to change this navigation. We’ll no longer directly navigate from calendar to edit. Instead we’re going to create a new component, some interim component that will sit between the two, and the job of this component is to load the data. And we’ll call it for now the *LoadData* component. So when the user clicks on either
+Right now the flow is that the user will be in the calendar component, they’ll click a button and they’ll be navigating to the edit component. We’re going to change this navigation. We’ll no longer directly navigate from calendar to edit. Instead we’re going to create a new component, some interim component that will sit between the two, and the job of this component is to load the data. And we’ll call it for now the *LoadData* component. So when the user clicks on either a new booking or to an amend a booking, from the calendar component we’ll navigate them first of all to this *LoadData* component. In the ngOnInit method of this component what we’ll do is set up a service and in the service we’ll load up the data, we’ll get all the rooms and all the users and we’ll store those rooms and users in the service. Once we’ve got all those, then we’ll navigate automatically to the edit component and the edit component can get the users and the rooms from the service. That data will have been pre-fetched, it will be available for the edit component, so there’ll be none of the issues we’re seeing so far. That data will exist before we even get to the edit component. That’s the idea of doing things in this manual, not quite production standard way.
 
-174 Pre-fetching data with navigation and a service (15m)
+## 174 Pre-fetching data with navigation and a service (15m)
 
-175 Using a resolver (11m)
+We’re going to be creating a new component and a new service.
+
+Service:`ng g s EditBookingData`
+
+Component: `ng g c calendar/BookingEditLoad`
+
+### in edit-booking-data.service.ts
+
+```tsx
+export class EditBookingDataService {
+  rooms: Array<Room>;
+  users: Array<User>;
+  dataLoaded = 0;
+
+  constructor(private dataService: DataService) {
+    this.dataService.getRooms().subscribe(
+      next => {
+        this.rooms = next;
+        this.dataLoaded++;
+      }
+    )
+    this.dataService.getUsers().subscribe(
+      next => {
+        this.users = next;
+        this.dataLoaded++;
+      }
+    )
+  }
+
+  bookingDataIsLoaded(): boolean {
+    return this.dataLoaded === 2;
+  }
+}
+```
+
+This isn’t going to be the final solution.
+
+### in booking-edit-load.component.ts
+
+```tsx
+export class BookingEditLoadComponent implements OnInit {
+
+  constructor(private bookingEditDataService : EditBookingDataService,
+              private router: Router,
+              private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    setTimeout(() => this.navigateWhenReady(), 1000);
+  }
+
+  navigateWhenReady(): void {
+    // check to see if the service data is loaded
+    if (this.bookingEditDataService.bookingDataIsLoaded()) {
+      // if yes - we'll navigate to the edit component
+      const bookingId = this.route.snapshot.queryParams['id'];
+      if (bookingId) {
+        this.router.navigate(['bookingEdit'], 
+														{queryParams: {id: bookingId}});
+      } else {
+        this.router.navigate(['bookingAdd']);
+      }
+    } else {
+      // if not - wait 500ms then try again
+      setTimeout(() => this.navigateWhenReady(), 500);
+    }
+  }
+}
+```
+
+### in booking-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.rooms = this.bookingEditDataService.rooms;
+  this.users = this.bookingEditDataService.users;
+
+  const id = this.route.snapshot.queryParams['id'];
+  if (id) {
+    const idNumber = +id;
+    this.dataService.getBookingById(idNumber)
+      .pipe(map(
+        booking => {
+          booking.room = this.rooms.find(room => room.id === booking.room.id);
+          booking.user = this.users.find(user => user.id === booking.user.id);
+          return booking;
+        }
+      ))
+      .subscribe(next => {
+        this.booking = next;
+        this.dataLoaded = true;
+        this.message = '';
+      });
+  } else {
+    this.booking = new Booking();
+    this.dataLoaded = true;
+    this.message = '';
+  }
+}
+```
+
+### in calendar.component.ts
+
+```tsx
+editBooking(bookingId: number) {
+  this.router.navigate(['**bookingEditLoad**'], 
+												{queryParams: {id: bookingId}});
+}
+
+addBooking() {
+  this.router.navigate(['**bookingEditLoad**']);
+}
+```
+
+### in app.module.ts
+
+```tsx
+const routes: Routes = [
+  {path : 'admin/users', component : UsersComponent},
+  {path : 'admin/rooms', component : RoomsComponent},
+  {path : '', component : CalendarComponent},
+  {path : 'bookingEdit', component : BookingEditComponent},
+  **{path : 'bookingEditLoad', component : BookingEditLoadComponent},**
+  {path : 'bookingAdd', component : BookingEditComponent},
+  {path : '404', component : PageNotFoundComponent},
+  {path : '**', redirectTo: '/404'}
+];
+```
+
+## 175 Using a resolver (11m)
 
 176 Module summary (1m)
