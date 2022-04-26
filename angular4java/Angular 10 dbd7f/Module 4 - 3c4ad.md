@@ -694,4 +694,115 @@ const routes: Routes = [
 
 ## 175 Using a resolver (11m)
 
-176 Module summary (1m)
+So what is the problem? Let’s imagine we clicked to amend a room. We waited for the data to load, we’ve got the data here, we’ve probably started making some changes. And then we thought, ah, these changes aren’t right. We know, we’ll refresh the page to get the data back and then start editing again. But we’ll get an error. If we’re refreshing the page, we’re going directly to a URL “bookingEdit?id=123”, but actually we never want to be able to do that. We always want to go via a URL “bookingEditLoad?id=123”. If we go via that URL then all the data’s going to become available and we’ll be able to refresh the page.
+
+The problem with the approach we’ve set up is that we end up at a URL that we don’t want the user ever to be able to refresh the browser for. We can’t stop the users refreshing the browser, so we need an alternative approach. The production standard way to do what we’re trying to do here to pre-fetch data is to use what’s called a *resolver*.
+
+A *resolver* is an object which resolves an Observable. It’s another way of working with the Observer Design Pattern. The resolver does the subscribing part and then it waits for the data to become available. In coding terms, a resolver is a service that implements an interface called the *Resolve* Interface. In fact the code is more straightforward than what we’ve just done. What we’ll be doing now is a shortcut feature.
+
+We’re going to replace the EditBookingDataService with two new services, one to load up the rooms and one to load up the users.
+
+`ng g s PrefetchRooms`
+
+### in prefetch-rooms.service.ts
+
+```tsx
+export class PrefetchRoomsService 
+			implements Resolve<Observable<Array<Room>>>{
+  constructor(private dataService: DataService) { }
+
+  resolve(): Observable<Array<Room>> {
+    return this.dataService.getRooms();
+  }
+}
+```
+
+`ng g s PrefetchUsers`
+
+### in prefetch-users.service.ts
+
+```tsx
+export class PrefetchUsersService 
+				implements Resolve<Observable<Array<User>>>{
+  constructor(private dataService: DataService) { }
+
+  resolve(): Observable<Array<User>> {
+    return this.dataService.getUsers();
+  }
+}
+```
+
+Now that we’ve created these two resolvers, we don’t need the service that we added and the component that we added. Before we delete them, we’re going to change the routing back in the calendar.component.
+
+### in calendar.component.ts
+
+```tsx
+editBooking(bookingId: number) {
+  this.router.navigate(['**bookingEdit**'], 
+					{queryParams: {id: bookingId}});
+}
+
+addBooking() {
+  this.router.navigate(['**bookingAdd**']);
+}
+```
+
+And we remove from app.module.ts this navigation line:
+
+`{path : 'bookingEditLoad', component : BookingEditLoadComponent},`
+
+The we can delete both load component and service.
+
+We are navigating directly from Calendar to Edit, but the idea is that as part of that navigation, before we reach the Edit component, we want to populate the rooms array and the users array. Right now they are not being populated. In fact these Resolvers are going to do that population for us, the two services we’ve just created. We’re going to put these resolvers as part of the navigation instruction within app.module.
+
+Now we have `{path : 'bookingEdit', component : BookingEditComponent},`
+
+The idea is that we’re adding in some extra parameters to this path. It will the Angular’s responsibility to get a list of rooms and a list of users and make them available before we reach the `BookingEditComponent`. We need to do the same for “bookingAdd” route.
+
+### in app.modules.ts
+
+```tsx
+const routes: Routes = [
+  {path : 'admin/users', component : UsersComponent},
+  {path : 'admin/rooms', component : RoomsComponent},
+  {path : '', component : CalendarComponent},
+  {
+    path : 'bookingEdit',
+    component : BookingEditComponent,
+    **resolve : {
+      rooms : PrefetchRoomsService,
+      users : PrefetchUsersService
+    }**
+  },
+  {
+    path : 'bookingAdd', 
+    component : BookingEditComponent,
+    **resolve : {
+      rooms : PrefetchRoomsService,
+      users : PrefetchUsersService
+    }**
+  },
+  {path : '404', component : PageNotFoundComponent},
+  {path : '**', redirectTo: '/404'}
+];
+```
+
+The final step is that when we do finally reach BookingEditComponent, the rooms and users should be available for us, but we need to go and get them. They’ll be in the ActivatedRoute object in a parameter called *data*.
+
+### in booking-edit.component.ts
+
+```tsx
+ngOnInit(): void {
+  this.rooms = this.route.snapshot.data['rooms'];
+  this.users = this.route.snapshot.data['users'];
+	// ...
+}
+```
+
+Now that should be everything done.
+
+Recap one more time. When we navigate to bookingAdd or bookingEdit, before the component is loaded, these resolvers are going to be set up so that in the route it’s a bit like having the ID as a parameter, we’re now gonna have the rooms and the users available. We won’t see them, they’ll be hidden, but we can access them from the *route* within our component.
+
+## 176 Module summary (1m)
+
+There is one piece of functionality to implement which is the Save button. This will be in the code for this chapter.

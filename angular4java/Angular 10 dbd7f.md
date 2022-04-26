@@ -482,8 +482,6 @@ Now we leave this simple project.
 
 # Module 4 - Connecting to a REST back end
 
-after
-
 [Module 4 - Connecting to a REST backend](Angular%2010%20dbd7f/Module%204%20-%209f58c.md)
 
 [Module 4 - Connecting to a REST backend (part2)](Angular%2010%20dbd7f/Module%204%20-%203c4ad.md)
