@@ -491,3 +491,7 @@ Now we leave this simple project.
 - Login
 - Angular security
 - REST security
+
+[Module 5 - Security and Deployment (part1)](Angular%2010%20dbd7f/Module%205%20-%2000141.md)
+
+[Module 5 - Security and Deployment (part2)](Angular%2010%20dbd7f/Module%205%20-%20a532d.md)
