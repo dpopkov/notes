@@ -54,7 +54,11 @@ Chapter 1 - Introduction
 
 ### 23 How to open a project from the sample files (5m)
 
-`npm install`      # will install dependencies and populate node_modules folder
+- Copy the folder into the work space.
+- Open in Intellij Idea.
+- Wait and then click on “Install dependencies, Run npm install”.
+
+`npm install`      # will install dependencies and populate *node_modules* folder
 
 `npm audit fix`   # downloades the latest versions and fixes vulnerabilities
 
