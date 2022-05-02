@@ -117,3 +117,69 @@ When we do the basic authentication step, the server won’t just send back the 
 ## 212 - Exercise 1 - Solution walkthrough part 2
 
 # Chapter 39 - Building and Deploying
+
+## 213 - Compiling an Angular project
+
+An Angular application consists of an index.html file and some JavaScript files. And some additional resources such as CSS files or images. An Angular project need to be compiled to the JavaScript files ready to be placed on a server.
+
+To start building process run `ng build`. We can optionally include command line arguments to specify the environment we want to use. In our application we can choose to run it in development mode, in production mode, or in local mode. The same command line arguments apply for the *ng build* command. If we run *ng build* with no command line arguments then the application would be built in the configuration for our *development* mode. That is it would be looking for localhost at the backend server. If we want it to be built in local mode we could do `ng build -c local` or for production mode `ng build -c production` or using shortcut `ng build --prod`.
+
+After the building process finishes we have an additional folder in our project called *dist* which is short for distribution. It contains files that are needed to deploy our application to the server.
+
+## 214 - A note about using Git with Angular
+
+The default gitignore file includes *dist* folder. If you’ve setup a continuous integration pipeline, so that for example committing code to GitHub will result in that code being deployed to a production server somewhere, then you may want to include the *dist* folder into your source code distribution, that is you might want to remove it from the gitignore file.
+
+## 215 - Deploying an Angular project
+
+There is one critical step, which is that you do need to configure the web server so that every URL is actually rooted through the `index.html` file. If we were to visit one of the pages within our application with some url which doesn’t exist in the file structure on our server, we want to be sure that no matter what the URL is, it’s always the `index.html` file which is going to be served.
+
+A sample nginx.conf configuration file:
+
+```
+events {
+  worker_connections  4096;  ## Default: 1024
+}
+
+http {
+   map $http_upgrade $connection_upgrade {
+       default upgrade;
+      '' close;
+   }
+
+   include /etc/nginx/mime.types;
+
+   server {
+      listen 80;
+
+      location / {
+         root /usr/share/nginx/html;
+         try_files $uri $uri/ /index.html;
+      }
+    }
+}
+```
+
+A sample Docker file which will allow you to build a docker image using nginx as the server to create a container that will serve our application:
+
+```
+FROM nginx:1.14.0-alpine
+
+MAINTAINER Your name "youremail@server.com"
+
+RUN apk add --update bash && rm -rf /var/cache/apk/*
+
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY /dist/YOUR_PROJECT_NAME/ /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+All you need to do if you are using Docker is copy the Dockerfile and the nginx.conf file to the root of your application. That’s the folder above the *dist* folder. You will need to change the name of your project so it knows which folder contains the code. Then you should be able to use these two files to build a docker image to serve your Angular application.
+
+There is lots of info about deploying an Angular application to be served directly from Amazon’s s3 simple storage service.
+
+Be aware that if you want to use SSL, then you actually need to also use Cloudfront to provide the SSL functionality. You won’t get it if you just use s3 by itself.
