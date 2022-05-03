@@ -472,7 +472,7 @@ Now we leave this simple project.
 
 - Typescript basics
 
-[Module 2 - Introduction to Typescript](Angular%2010%20dbd7f/Module%202%20-%2074cab.md) 
+[Module 2 - Introduction to Typescript](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%202%20-%20Introduction%20to%20Typescript%2074cab15add0e4098b2271095aeb946a1.md) 
 
 # Module 3 - Building a real site
 
@@ -480,15 +480,15 @@ Now we leave this simple project.
 
 - Functioning Angular front-ends
 
-[Module 3 - Building a real site](Angular%2010%20dbd7f/Module%203%20-%2053cca.md)
+[Module 3 - Building a real site](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%203%20-%20Building%20a%20real%20site%2053ccaec3b63e4392b565e9ab08eb730b.md)
 
-[Module 3 - Building a real site (part2)](Angular%2010%20dbd7f/Module%203%20-%20ca1a0.md)
+[Module 3 - Building a real site (part2)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%203%20-%20Building%20a%20real%20site%20(part2)%20ca1a0f5907cd4de5812c4524a00406b4.md)
 
 # Module 4 - Connecting to a REST back end
 
-[Module 4 - Connecting to a REST backend](Angular%2010%20dbd7f/Module%204%20-%209f58c.md)
+[Module 4 - Connecting to a REST backend](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%204%20-%20Connecting%20to%20a%20REST%20backend%209f58c87e77bc4d7e8fb60c7b98d496fa.md)
 
-[Module 4 - Connecting to a REST backend (part2)](Angular%2010%20dbd7f/Module%204%20-%203c4ad.md)
+[Module 4 - Connecting to a REST backend (part2)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%204%20-%20Connecting%20to%20a%20REST%20backend%20(part2)%203c4ade2bad304e07b4b032bf2663f5da.md)
 
 # Module 5 - Security and Deployment
 
@@ -496,6 +496,6 @@ Now we leave this simple project.
 - Angular security
 - REST security
 
-[Module 5 - Security and Deployment (part1)](Angular%2010%20dbd7f/Module%205%20-%2000141.md)
+[Module 5 - Security and Deployment (part1)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%205%20-%20Security%20and%20Deployment%20(part1)%2000141c43368e4d69a41bfd182cdae46a.md)
 
-[Module 5 - Security and Deployment (part2)](Angular%2010%20dbd7f/Module%205%20-%20a532d.md)
+[Module 5 - Security and Deployment (part2)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%205%20-%20Security%20and%20Deployment%20(part2)%20a532d49543954031913df96a5740f395.md)
