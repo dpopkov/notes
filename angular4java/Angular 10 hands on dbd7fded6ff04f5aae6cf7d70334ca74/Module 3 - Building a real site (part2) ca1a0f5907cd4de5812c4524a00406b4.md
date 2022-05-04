@@ -444,7 +444,7 @@ We also add attribute *required* to both input elements.
 
 ## 124 Setting and reading form control values (4m)
 
-Right now we’ve bound our HTML to the FormGroup object, but we don’t yet have any of the data from our room appearing in the form. You can probably guess that what we’ll need to do is to place the data from the room into thee controls when the form loads and then in onSubmit method, we’ll read the data out of the form and put it back into our room object. So how do we get the data into the form? You can probably guess we’ll do something in ngOnInit method. The FormGroupObject has a method called *patchValue()* which allows us to take each of the labels and provide a value for each label. And now when we load up the form we’ll see the values from our room appearing in that form.
+Right now we’ve bound our HTML to the FormGroup object, but we don’t yet have any of the data from our room appearing in the form. You can probably guess that what we’ll need to do is to place the data from the room into the controls when the form loads and then in onSubmit method, we’ll read the data out of the form and put it back into our room object. So how do we get the data into the form? You can probably guess we’ll do something in ngOnInit method. The FormGroupObject has a method called *patchValue()* which allows us to take each of the labels and provide a value for each label. And now when we load up the form we’ll see the values from our room appearing in that form.
 
 ### in room-edit.component.ts
 
@@ -472,9 +472,9 @@ onSubmit() {
 }
 ```
 
-Now we’re ready to save this room object. You’ll notice hat because of the way our application works, the room is being automatically updated in the backend. But we’ll ignore that and do it properly. What we really want to do here is to call some method in the data service to save the room at this point. We’re going to come back and do that in a little while.
+Now we’re ready to save this room object. You’ll notice that because of the way our application works, the room is being automatically updated in the backend. But we’ll ignore that and do it properly. What we really want to do here is to call some method in the data service to save the room at this point. We’re going to come back and do that in a little while.
 
-## 126 Programmatically adding controls (11m)
+## 125 Programmatically adding controls (11m)
 
 Let’s now talk about the reason why we have had to switch to the active forms. And that is that we don’t know at design time how many layout options there are going to be. So we want to build up a set of values in the corresponding section of the page. It’s going to be a set of labels and inputs, one for each of the different layout types as defined in the enum, but at coding time we don’t know how many there are going to be, because that could change at some point in the future. We’re going to create some kind of loop to generate these controls. Let’s start building this and we’ll see what it looks like.
 

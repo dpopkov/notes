@@ -499,3 +499,7 @@ Now we leave this simple project.
 [Module 5 - Security and Deployment (part1)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%205%20-%20Security%20and%20Deployment%20(part1)%2000141c43368e4d69a41bfd182cdae46a.md)
 
 [Module 5 - Security and Deployment (part2)](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/Module%205%20-%20Security%20and%20Deployment%20(part2)%20a532d49543954031913df96a5740f395.md)
+
+# How to
+
+[How to](Angular%2010%20hands%20on%20dbd7fded6ff04f5aae6cf7d70334ca74/How%20to%20fe69573dcbbe408180213dcb0ad57905.md)

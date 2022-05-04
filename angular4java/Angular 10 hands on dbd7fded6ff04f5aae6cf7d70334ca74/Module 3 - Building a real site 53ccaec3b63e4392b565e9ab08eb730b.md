@@ -355,13 +355,13 @@ in rooms.component.html:
   </table>
 </div>
 <div class="col-6">
-  <app-room-detail [room]="selectedRoom"></app-room-detail>
+  <app-room-detail **[room]="selectedRoom"**></app-room-detail>
 </div>
 ```
 
 ## 107 Using routing for sub-components (11m)
 
-What we’d like to do is change the URL to represent the currently selected room. We need to implement a rule for the URL `admin/rooms?id=1`. 
+What we’d like to do is change the URL to represent the currently selected room. We need to implement a rule for the URL `admin/rooms?id=1`. This URL will match `admin/room` in routes in app.module.ts file which maps to RoomsComponent. So we don’t change anything it the list of routes. But we need in RoomsComponent to inspect a URL to find out whether or not there is a parameter “id” on the path. If there is, we will do something about it.
 
 In order to look at the current URL we need to use an Angular object called *ActivatedRoute* and we can use dependency injection to get hold of that object. The *ActivatedRoute* object gives us information about the URL of the current page. We’ll look at it in *ngOnInit()*.
 
@@ -369,7 +369,7 @@ rooms.component.ts:
 
 ```tsx
 constructor(private dataService: DataService,
-            private route: ActivatedRoute,
+            **private route: ActivatedRoute**,
             private router: Router) { }
 
 ngOnInit(): void {
@@ -394,7 +394,7 @@ in rooms.component.html:
 
 ```html
 <div class="col-6">
-  <app-room-detail *ngIf="selectedRoom" [room]="selectedRoom">
+  <app-room-detail ***ngIf="selectedRoom"** [room]="selectedRoom">
   </app-room-detail>
 </div>
 ```
@@ -408,7 +408,7 @@ in rooms.component.html:
 
 ## 109 Exercise 2 - solution walkthrough (9m)
 
-Create model class for User:
+### Create model class for User:
 
 ```tsx
 export class User {
@@ -417,9 +417,9 @@ export class User {
 }
 ```
 
-Generate component for UserDetails: `ng g c admin/users/UserDetail`
+Generate component for UserDetails: `ng g c admin/users/UserDetails`
 
-in data.service.ts:
+### Initialize users in data.service.ts:
 
 ```tsx
 users: Array<User> = new Array<User>();
@@ -433,7 +433,7 @@ constructor() {
 }
 ```
 
-in users.component.ts
+### in users.component.ts
 
 ```tsx
 users: Array<User>
@@ -461,7 +461,7 @@ setSelectedUser(userId: number): void {
 }
 ```
 
-user-details.component.ts:
+### user-details.component.ts:
 
 ```tsx
 export class UserDetailComponent implements OnInit {
@@ -473,10 +473,12 @@ export class UserDetailComponent implements OnInit {
 }
 ```
 
-in users.component.html:
+### in users.component.html:
 
 ```html
-<tbody>
+<div class="col-6">
+	<table>	
+		<tbody>
     <tr *ngFor="let user of users">
       <td>{{ user.id }}</td><td>{{ user.name }}</td>
       <td>
@@ -494,7 +496,7 @@ in users.component.html:
 </div>
 ```
 
-in user-details.component.html:
+### in user-details.component.html:
 
 ```html
 <table>
@@ -527,22 +529,24 @@ So before we start creating lots more methods in this local data service, we thi
 
 So the method signature is not going to return an array of rooms but it’s going to return an observable of an array of rooms.
 
-in data.service.ts:
+### in data.service.ts:
 
 ```tsx
+**import {Observable, of} from "rxjs";**
+...
 private rooms: Array<Room> = new Array<Room>();
 private users: Array<User> = new Array<User>();
 
-getRooms(): Observable<Array<Room>> {
-  return of(this.rooms);
+getRooms(): **Observable**<Array<Room>> {
+  return **of**(this.rooms);
 }
 
-getUsers(): Observable<Array<User>> {
-  return of(this.users);
+getUsers(): **Observable**<Array<User>> {
+  return **of**(this.users);
 }
 ```
 
-in rooms.component.ts:
+### in rooms.component.ts:
 
 ```tsx
 ngOnInit(): void {
@@ -555,7 +559,7 @@ ngOnInit(): void {
 }
 ```
 
-in users.component.ts:
+### in users.component.ts:
 
 ```tsx
 ngOnInit(): void {
@@ -574,7 +578,7 @@ ngOnInit(): void {
 
 So far everything we have done with Angular has been *read-only*. We’ve been displaying information on the screen. In this chapter we’re going to start learning how to create forms to allow users to input data. There are two different ways to do forms in Angular called *template driven* and *reactive*. Template driven is certainly easier of the two, so we’ll focus on this method in this chapter and then we’ll look at the alternative reactive forms in a couple of chapters time.
 
-The concept behind how template driven forms work is relatively straightforward. We’ll use HTML elements, such as *input* and in the backing TypeScript file we’ll create variables that we will bind to these elements. So as the value in the *input* changes, the variable in the backing file will be automatically updated. We don’t actually submit a form to a server, but instead we’ll have the equivalent of a submit button which will be bound to a method in the TypeScript file that can read these variables to get the form’s values
+The concept behind how template driven forms work is relatively straightforward. We’ll use HTML elements, such as *input* and in the backing TypeScript file we’ll create variables that we will bind to these elements. So as the value in the *input* changes, the variable in the backing file will be automatically updated. We don’t actually submit a form to a server, but instead we’ll have the equivalent of a submit button which will be bound to a method in the TypeScript file that can read these variables to get the form’s values.
 
 ## 112 Setting up navigation to show a form (9m)
 
@@ -584,7 +588,7 @@ The first step is going to be is to create a component for editing users:
 
  `ng g c admin/users/UserEdit`
 
-Before we start working on making this into a form, we’d like to deal with fist of all making the form appear. And we want to do this in a production standard way. Right now we’re using the URL with a query parameter (`?id=2`) to determine which user to show. It would be sensible if we upgrade this to say as well as the query parameter `id` we’ll add in a second parameter which we’ll call *action* and we can set it equal to either *view* if we want to view user or *edit* if we want to edit user (`?id=1&action=edit`). We’re going to upgrade the application to work with 2 parameters, not just one.
+Before we start working on making this into a form, we’d like to deal with first of all making the form appear. And we want to do this in a production standard way. Right now we’re using the URL with a query parameter (`?id=2`) to determine which user to show. It would be sensible if we upgrade this to say as well as the query parameter `id` we’ll add in a second parameter which we’ll call `action` and we can set it equal to either *view* if we want to view user or *edit* if we want to edit user (`?id=1&action=edit`). We’re going to upgrade the application to work with 2 parameters, not just one.
 
 The first thing we should do is in the user.component.html insert the name of the user we are editing, so we can check we’ve passed the correct user through to this component. To do that, we’ll have a variable in the user-edit.component.ts file, which we’ll call *user* of type *User*. And we’ll use `@Input` decorator so we can bind to this variable. Then in the HTML we should be able to use `{{ user.name }}`. We’ll deal with this as a form later, but now we’ll at least know it’s loading up the correct component and displaying the correct user, when we’ve done this navigation piece.
 
@@ -613,7 +617,7 @@ In the method *setSelectedUser()* we’ve got some navigation going on, and we�
 ### users.component.ts
 
 ```tsx
-action: string;
+**action: string;**
 
 constructor(private dataService: DataService,
               private route: ActivatedRoute,
@@ -624,21 +628,18 @@ ngOnInit(): void {
   this.route.queryParams.subscribe(
     (params) => {
       const idString = params['id'];
-      const action = params['action'];
       if (idString) {
         const idNumber = +idString;
         this.selectedUser = this.users.find(user => user.id === idNumber);
-        if (action) {
-          this.action = action;
-        }
       }
+			**this.action = params['action'];**
     }
   )
 }
 
 setSelectedUser(userId: number): void {
   this.router.navigate(['admin', 'users'], 
-												{queryParams: {id: userId, action: 'view'}});
+												{queryParams: {id: userId, **action: 'view'**}});
 }
 ```
 
@@ -650,10 +651,10 @@ Now what we should be able to do is to code up the *edit* button. So that when w
 
 ```html
 <div class="col-6">
-  <app-user-detail *ngIf="action === 'view'" [user]="selectedUser">
+  <app-user-detail ***ngIf="action === 'view'"** [user]="selectedUser">
 	</app-user-detail>
-  <app-user-edit *ngIf="action === 'edit'" [user]="selectedUser">
-	</app-user-edit>
+  **<app-user-edit *ngIf="action === 'edit'" [user]="selectedUser">
+	</app-user-edit>**
 </div>
 ```
 
@@ -765,11 +766,11 @@ Now when we can see the name of the user in the Edit User form, and we can edit 
 ### in user-edit.component.ts
 
 ```tsx
-formUser: User;
+**formUser: User;**
 message: string;
 
 ngOnInit(): void {
-  this.formUser = Object.assign({}, this.user);
+  **this.formUser = Object.assign({}, this.user);**
 }
 
 onSubmit(): void {
@@ -786,7 +787,7 @@ onSubmit(): void {
     <label for="name">Name</label>
     <input type="text" class="form-control" id="name" 
 					 placeholder="user name"
-           [(ngModel)]="formUser.name" name="name">
+           **[(ngModel)]="formUser.name" name="name"**>
   </div>
   ...
 </form>
@@ -814,16 +815,16 @@ We want to call this updateUser method from our edit user component.
 ### in user-edit.component.ts
 
 ```tsx
-constructor(private dataService: DataService,
-            private router: Router) {
+constructor(**private dataService: DataService**,
+            **private router: Router**) {
 }
 // ..
 onSubmit(): void {
-  this.dataService.updateUser(this.formUser).subscribe(
+  **this.dataService.updateUser(this.formUser).subscribe(**
     (user) => {
       // If we get that event it means that 
 			// our user has been successfully updated
-      this.router.navigate(['admin', 'users'], 
+      **this.router.navigate**(['admin', 'users'], 
 												{queryParams: {id: user.id, action: 'view'}});
     }
   );
@@ -846,7 +847,7 @@ addUser(): void {
 ### in users.component.html
 
 ```html
-<a class="btn btn-warning mb-3" (click)="addUser()">add</a>
+<a class="btn btn-warning mb-3" **(click)="addUser()"**>add</a>
 ```
 
 That will deal with the navigation part. Now we need to deal with interpreting this URL. We have to create a new User object and to change the ngIf condition in HTML
@@ -855,7 +856,7 @@ That will deal with the navigation part. Now we need to deal with interpreting t
 
 ```tsx
 addUser(): void {
-    this.selectedUser = new User();
+    **this.selectedUser = new User();**
     this.router.navigate(['admin', 'users'], 
 												{queryParams: {action: 'add'}});
   }
@@ -867,7 +868,7 @@ addUser(): void {
 <div class="col-6">
     <app-user-detail *ngIf="action === 'view'" [user]="selectedUser">
 		</app-user-detail>
-    <app-user-edit *ngIf="action === 'edit' || action === 'add'" 
+    <app-user-edit *ngIf="action === 'edit' **|| action === 'add'**" 
 										[user]="selectedUser">
 		</app-user-edit>
   </div>
@@ -890,6 +891,7 @@ addUser(newUser: User, password: string): Observable<User> {
     }
   }
   newUser.id = maxId + 1;
+  // for this version we ignore the password
   this.users.push(newUser);
   return of(newUser);
 }
@@ -898,16 +900,16 @@ addUser(newUser: User, password: string): Observable<User> {
 ### in user-edit.component.ts
 
 ```tsx
-password: string;
+**password: string;**
 // ...
 onSubmit(): void {
-  if (this.formUser.id == null) {
+  **if (this.formUser.id == null) {
     this.dataService.addUser(this.formUser, this.password).subscribe(
       (user) => {
         this.navigateToView(user);
       }
     )
-  } else {
+  } else** {
     this.dataService.updateUser(this.formUser).subscribe(
       (user) => {
         this.navigateToView(user);
@@ -929,7 +931,7 @@ private navigateToView(user: User) {
   <label for="password">Password</label>
   <input type="password" class="form-control" 
 				 id="password" placeholder="password"
-        [(ngModel)]="password" name="password">
+        **[(ngModel)]="password" name="password"**>
   <div class="alert alert-danger">error message placeholder</div>
 </div>
 ```
