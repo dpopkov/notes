@@ -855,11 +855,27 @@ That will deal with the navigation part. Now we need to deal with interpreting t
 ### in users.component.ts
 
 ```tsx
+ngOnInit(): void {
+  // ..
+  this.route.queryParams.subscribe(
+    (params) => {
+			**this.action = params['action'];**
+      const idString = params['id'];
+      if (idString) {
+        const idNumber = +idString;
+        this.selectedUser = this.users.find(user => user.id === idNumber);
+      }
+    }
+  )
+}
+```
+
+```tsx
 addUser(): void {
-    **this.selectedUser = new User();**
-    this.router.navigate(['admin', 'users'], 
-												{queryParams: {action: 'add'}});
-  }
+  **this.selectedUser = new User();**
+  this.router.navigate(['admin', 'users'], 
+											{queryParams: {action: 'add'}});
+}
 ```
 
 ### in users.component.html

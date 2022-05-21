@@ -15,17 +15,27 @@ passwordDouble: string;
 ### in user-edit.component.html
 
 ```html
+<div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" 
+						placeholder="user name"
+           [(ngModel)]="formUser.name" name="name" **required**>
+    <div class="alert alert-danger">error message placeholder</div>
+  </div>
+```
+
+```html
 <div class="form-group" *ngIf="user.id == null">
   <label for="password">Password</label>
   <input type="password" class="form-control" id="password" 
 				placeholder="password"
         [(ngModel)]="password" name="password">
   <div class="alert alert-danger">error message placeholder</div>
-  <label for="password2">Repeat password</label>
+  **<label for="password2">Repeat password</label>
   <input type="password" class="form-control" id="password2" 
 				 placeholder="password"
          [(ngModel)]="passwordDouble" name="password2">
-  <div class="alert alert-danger">error message placeholder</div>
+  <div class="alert alert-danger">error message placeholder</div>**
 </div>
 ```
 
@@ -34,7 +44,7 @@ Let’s start with the first peace of validation which is going to be on the nam
 ### user-edit.component.css
 
 ```css
-input.ng-invalid.ng-touched {
+input**.ng-invalid.ng-touched** {
   border: 1px solid red;
 }
 ```
@@ -53,9 +63,9 @@ Let’s have a look at error message placeholders. It would be nice if these gav
   <input type="text" class="form-control" id="name" 
 				 placeholder="user name"
          [(ngModel)]="formUser.name" name="name" required 
-				 #nameField="ngModel">
-  <div *ngIf="nameField.invalid && nameField.touched"
-       class="alert alert-danger">Name is required</div>
+				 **#nameField="ngModel"**>
+  <div ***ngIf="nameField.invalid && nameField.touched"**
+       class="alert alert-danger">**Name is required**</div>
 </div>
 ```
 
@@ -64,10 +74,11 @@ Ideally we don’t want to be able to submit this form if the form isn’t valid
 ### in user-edit.component.html
 
 ```html
-<form #editUserForm="ngForm">
+**<!-- Put the template reference on the form -->**
+<form **#editUserForm="ngForm"**>
 	...
   <button type="button" class="btn btn-primary" (click)="onSubmit()"
-          [disabled]="editUserForm.invalid"
+          **[disabled]="editUserForm.invalid"**
   >Save</button>
 </form>
 ```
@@ -81,16 +92,16 @@ Let’s do something a bit more complicated now, some custom validation. Ideally
 ### in user-edit.component.ts
 
 ```tsx
-nameIsValid = false;
+**nameIsValid = false;**
 // ..
 ngOnInit(): void {
   this.formUser = Object.assign({}, this.user);
-  this.checkIfNameIsValid();
+  **this.checkIfNameIsValid();**
 }
 // ..
-checkIfNameIsValid(): void {
+**checkIfNameIsValid(): void {
   this.nameIsValid = this.formUser.name.trim().length > 0;
-}
+}**
 ```
 
 ### in user-edit.component.html
@@ -98,6 +109,7 @@ checkIfNameIsValid(): void {
 ```html
 <div class="form-group">
   <label for="name">Name</label>
+  <!-- Use "change" event for validation -->
   <input type="text" class="form-control" id="name" 
 				 placeholder="user name"
          **(change)="checkIfNameIsValid()"**
@@ -105,8 +117,9 @@ checkIfNameIsValid(): void {
 				 required #nameField="ngModel">
   <div *ngIf="nameField.invalid && nameField.touched"
        class="alert alert-danger">Name is required</div>
-  <div *ngIf="nameField.touched && **!nameIsValid**"
-       class="alert alert-danger">Name cannot be blank</div>
+  <!-- Add another validation message for blank name field. -->
+  **<div *ngIf="nameField.touched && !nameIsValid"
+       class="alert alert-danger">Name cannot be blank</div>**
 </div>
 
 <button type="button" class="btn btn-primary" (click)="onSubmit()"
@@ -183,29 +196,29 @@ checkIfPasswordsMatch(): void {
   <label for="password">Password</label>
   <input type="password" class="form-control" id="password" 
 				 placeholder="password"
-         (change)="checkIfPasswordIsValid(); checkIfPasswordsMatch()"
+         **(change)="checkIfPasswordIsValid(); checkIfPasswordsMatch()"**
         [(ngModel)]="password" name="password" required 
-				#passwordField="ngModel">
-  <div *ngIf="passwordField.invalid && passwordField.touched"
+				**#passwordField="ngModel"**>
+  **<div *ngIf="passwordField.invalid && passwordField.touched"
        class="alert alert-danger">Password is required</div>
   <div *ngIf="passwordField.touched && !passwordIsValid"
-       class="alert alert-danger">Password cannot be blank</div>
+       class="alert alert-danger">Password cannot be blank</div>**
 
   <label for="password2">Repeat password</label>
   <input type="password" class="form-control" id="password2" 
 				 placeholder="password"
-         (change)="checkIfPasswordsMatch()"
+         **(change)="checkIfPasswordsMatch()"**
          [(ngModel)]="passwordDouble" name="password2" required 
-				 #password2Field="ngModel">
-  <div *ngIf="password2Field.invalid && password2Field.touched"
+				 **#password2Field="ngModel"**>
+  **<div *ngIf="password2Field.invalid && password2Field.touched"
        class="alert alert-danger">Re-typed password is required</div>
   <div *ngIf="password2Field.touched && !passwordsMatch"
-       class="alert alert-danger">Passwords do not match</div>
+       class="alert alert-danger">Passwords do not match</div>**
 </div>
 
 <button type="button" class="btn btn-primary" (click)="onSubmit()"
         [disabled]="editUserForm.invalid || !nameIsValid 
-					|| (user.isNew() && (!passwordIsValid || !passwordsMatch))"
+					**|| (user.isNew() && (!passwordIsValid || !passwordsMatch))"**
 >Save</button>
 ```
 
@@ -251,7 +264,7 @@ Now we want to bind this method to the click event of the edit room button.
 ### in room-detail.component.html
 
 ```html
-<a class="btn btn-small btn-warning" (click)="editRoom()">edit</a>
+<a class="btn btn-small btn-warning" **(click)="editRoom()"**>edit</a>
 ```
 
 Most of the work then to do in navigation is going to work in the rooms component. In the TypeScript file, we don’t have the action there as a string yet. Let’s add that first. Then in the *ngOnInit()* method subscribe on the queryParams, we’re getting the ID, and we’ll also want to set the action at this point. If the action is “add” then we’ll want to set up a new room to work with the edit screen.
@@ -259,7 +272,7 @@ Most of the work then to do in navigation is going to work in the rooms componen
 ### in rooms.component.ts
 
 ```tsx
-action: string;
+**action: string;**
 
 ngOnInit(): void {
   // ...
@@ -272,17 +285,21 @@ ngOnInit(): void {
 													.find(room => room.id === idAsNumber);
       }
       this.action = params['action'];
-      if (this.action === 'add') {
+      **if (this.action === 'add') {
         this.selectedRoom = new Room();
         this.action = 'edit';
-      }
+      }**
     }
   )
 }
-addRoom(): void {
+setSelectedRoom(roomId: number): void {
+  this.router.navigate(['admin', 'rooms'], 
+											{queryParams : { id: roomId**, action: 'view'**}});
+}
+**addRoom(): void {
   this.router.navigate(['admin', 'rooms'], 
 												{queryParams : { action: 'add'}});
-}
+}**
 ```
 
 In the rooms.component.html we’ll start with *add* button. Then we add *app-room-edit* component.
@@ -290,13 +307,13 @@ In the rooms.component.html we’ll start with *add* button. Then we add *app-ro
 ### in rooms.component.html
 
 ```html
-<a class="btn btn-warning mb-3" (click)="addRoom()">add</a>
+<a class="btn btn-warning mb-3" **(click)="addRoom()"**>add</a>
 ...
 <div class="col-6">
-  <app-room-detail *ngIf="action === 'view'" [room]="selectedRoom">
+  <app-room-detail ***ngIf="action === 'view'"** [room]="selectedRoom">
 	</app-room-detail>
-  <app-room-edit *ngIf="action === 'edit'" [room]="selectedRoom">
-	</app-room-edit>
+  **<app-room-edit *ngIf="action === 'edit'" [room]="selectedRoom">
+	</app-room-edit>**
 </div>
 ```
 
@@ -352,7 +369,7 @@ Now we are ready to start creating our form. The principle here is that for each
 ### in room-edit.component.ts
 
 ```tsx
-roomName = new FormControl('roomName');
+roomName = new FormControl('**roomName**');
 ```
 
 ### in room-edit.component.html
@@ -376,8 +393,8 @@ Here, we’re binding our form fields to programmatic representations of those f
 ### in room-edit.component.ts
 
 ```tsx
-roomForm = new FormGroup(
-  {
+**roomForm = new FormGroup(
+  {**
     roomName: new FormControl('roomName')
   }
 );
@@ -459,7 +476,7 @@ ngOnInit(): void {
 }
 ```
 
-Unlike in the template forms way of working with forms, we don’t have the problem here of needing to create a copy of our room object. The form is completely disconnected from it. When we come to save the form we’ll need to extract the values form the FormGroup at that point. We do that in the *onSumbit()* method
+Unlike in the template forms way of working with forms, we don’t have the problem here of needing to create a copy of our room object. The form is completely disconnected from it. When we come to save the form we’ll need to extract the values form the FormGroup at that point. We do that in the *onSubmit()* method
 
 ### in room-edit.component.ts
 
@@ -503,10 +520,10 @@ The next thing we’ll want to do is make sure that each of these inputs have a 
 
 ```html
 <div class="form-group" *ngFor="let layoutKey of layoutKeys">
-    <label for="layout{{layoutKey}}"
+    <label **for="layout{{layoutKey}}"**
 		>{{layoutMap.get(layoutKey)}}</label>
     <input type="number" class="form-control" 
-			id="layout{{layoutKey}}" formControlName="layout{{layoutKey}}">
+			**id="layout{{layoutKey}}"** **formControlName="layout{{layoutKey}}"**>
   </div>
 ```
 
@@ -524,10 +541,10 @@ ngOnInit(): void {
       roomLocation: this.room.location
     }
   );
-  for (const layoutKey of this.layoutKeys) {
+  **for (const layoutKey of this.layoutKeys) {
     let label = `layout${layoutKey}`;
     this.roomForm.addControl(label, new FormControl(label));
-  }
+  }**
 }
 ```
 
@@ -541,13 +558,13 @@ onSubmit() {
 	 // other way
   this.room.location = this.roomForm.value['roomLocation'];
   this.room.capacities = new Array<LayoutCapacity>();
-  for (const layoutKey of this.layoutKeys) {
+  **for (const layoutKey of this.layoutKeys) {
     const layoutCapacity = new LayoutCapacity();
     layoutCapacity.layout = Layout[layoutKey];
-    const label = `layout${layoutKey}`;
+    const label = `layout${layoutKey}`;  // using string interpolation
     layoutCapacity.capacity = this.roomForm.controls[label].value;
     this.room.capacities.push(layoutCapacity);
-  }
+  }**
   console.log('updated room:', this.room);
   // todo: call a method in the data service to save the room
 }
@@ -562,26 +579,27 @@ In the last chapter we created a form dynamically. That is we created a form gro
 ### in room-edit.component.ts
 
 ```tsx
-roomForm: FormGroup;
-constructor(private formBuilder: FormBuilder) {
+**roomForm: FormGroup;**
+constructor(**private formBuilder: FormBuilder**) {
 	// ...
 }
 
 ngOnInit(): void {
-  this.roomForm = this.formBuilder.group(
+  **this.roomForm = this.formBuilder.group(
       {
-        roomName: this.room.name,
+        roomName: this.room.name,  // control-name : initial-value
         roomLocation: this.room.location
       }
-  )
+  );
+  // don't need the this.roomForm.pachValue(..) method any more**
   for (const layoutKey of this.layoutKeys) {
-    const layoutCapacity = this.room.capacities
+    **const layoutCapacity = this.room.capacities
 							.find(lc => lc.layout === Layout[layoutKey]);
     const initialCapacity = layoutCapacity == null ? 0 
-														: layoutCapacity.capacity;
+														: layoutCapacity.capacity;**
     const label = `layout${layoutKey}`;
     this.roomForm.addControl(label, 
-													this.formBuilder.control(initialCapacity));
+													**this.formBuilder.control(initialCapacity)**);
   }
 }
 ```
